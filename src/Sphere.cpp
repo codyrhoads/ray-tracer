@@ -6,7 +6,6 @@
 //
 //
 
-#include <stdio.h>
 #include <glm/gtc/type_ptr.hpp>
 
 #include "SceneObject.hpp"
@@ -66,7 +65,7 @@ void Sphere::printObjectInfo()
     SceneObject::printObjectInfo();
 }
 
-void Sphere::printObjectType()
+string Sphere::getObjectType()
 {
-    printf("Object Type: Sphere\n");
+    return "Sphere";
 }

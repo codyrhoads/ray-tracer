@@ -34,6 +34,6 @@ vec3 Ray::getPointAtTime(float t)
 
 void Ray::printRayInfo()
 {
-    printf("Ray: {%g %g %g} -> {%.6g %.6g %.6g}\n", origin.x, origin.y, origin.z,
+    printf("Ray: {%g %g %g} -> {%g %g %g}\n", origin.x, origin.y, origin.z,
            direction.x, direction.y, direction.z);
 }

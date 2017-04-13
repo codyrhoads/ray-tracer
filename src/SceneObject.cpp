@@ -7,6 +7,7 @@
 //
 
 #include <stdio.h>
+#include <string>
 
 #include "SceneObject.hpp"
 
@@ -42,12 +43,7 @@ void SceneObject::printObjectInfo()
     printf("  - Diffuse: %g\n", diffuse);
 }
 
-void SceneObject::printObjectType()
+string SceneObject::getObjectType()
 {
-    
-}
-
-void SceneObject::printObjectColor()
-{
-    printf("Color: (%g, %g, %g)\n", color.x, color.y, color.z);
+    return "NULL";
 }

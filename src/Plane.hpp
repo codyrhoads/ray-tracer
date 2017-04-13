@@ -25,7 +25,7 @@ public:
     float getDistance() const {return distance;}
     
     void printObjectInfo();
-    void printObjectType();
+    std::string getObjectType();
 private:
     glm::vec3 normal;
     float distance;

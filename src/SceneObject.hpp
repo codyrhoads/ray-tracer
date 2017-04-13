@@ -27,8 +27,7 @@ public:
     float getDiffuse() const {return diffuse;}
     
     virtual void printObjectInfo();
-    virtual void printObjectType();
-    void printObjectColor();
+    virtual std::string getObjectType();
 protected:
     glm::vec3 color;
     float ambient, diffuse;

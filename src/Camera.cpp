@@ -91,9 +91,11 @@ void Camera::firstHit(const vector<shared_ptr<SceneObject>> objects,
     int index = getClosestObjectIndex(objects, t);
     
     if (index != -1) {
+        shared_ptr<SceneObject> obj = objects.at(index);
         printf("T = %g\n", t);
-        objects.at(index)->printObjectType();
-        objects.at(index)->printObjectColor();
+        printf("Object Type: %s\n", obj->getObjectType().c_str());
+        printf("Color: (%g, %g, %g)\n", obj->getColor().r, obj->getColor().g,
+               obj->getColor().b);
     }
     else {
         printf("No Hit\n");
@@ -134,7 +136,8 @@ void Camera::setCurrRay(float pixelX, float pixelY)
     screenU = (pixelX + 0.5)/imageWidth - 0.5;
     screenV = (pixelY + 0.5)/imageHeight - 0.5;
     
-    screenIntersect = location + screenU * right + screenV * up + normalize(lookAt - location);
+    screenIntersect = location + screenU * right + screenV * up
+                      + normalize(lookAt - location);
     dir = normalize(screenIntersect - location);
     
     currRay = make_shared<Ray>(location, dir);

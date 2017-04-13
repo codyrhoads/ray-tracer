@@ -59,7 +59,7 @@ void Plane::printObjectInfo()
     SceneObject::printObjectInfo();
 }
 
-void Plane::printObjectType()
+string Plane::getObjectType()
 {
-    printf("Object Type: Plane\n");
+    return "Plane";
 }

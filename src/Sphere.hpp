@@ -27,7 +27,7 @@ public:
     float getRadius() const {return radius;}
     
     void printObjectInfo();
-    void printObjectType();
+    std::string getObjectType();
 private:
     glm::vec3 center;
     float radius;
