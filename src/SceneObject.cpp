@@ -29,10 +29,25 @@ diffuse(diffuse)
     
 }
 
-void SceneObject::print()
+bool SceneObject::testIntersection(shared_ptr<Ray> &ray, float &t)
+{
+    return false;
+}
+
+void SceneObject::printObjectInfo()
 {
     printf("- Color: {%g %g %g}\n", color.x, color.y, color.z);
     printf("- Material:\n");
     printf("  - Ambient: %g\n", ambient);
     printf("  - Diffuse: %g\n", diffuse);
+}
+
+void SceneObject::printObjectType()
+{
+    
+}
+
+void SceneObject::printObjectColor()
+{
+    printf("Color: (%g, %g, %g)\n", color.x, color.y, color.z);
 }

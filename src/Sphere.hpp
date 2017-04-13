@@ -18,12 +18,16 @@ class Sphere : public SceneObject
 {
 public:
     Sphere();
-    Sphere(glm::vec3 center, float radius, glm::vec3 color, float ambient, float diffuse);
+    Sphere(glm::vec3 center, float radius, glm::vec3 color, float ambient,
+           float diffuse);
     
-    void print();
+    bool testIntersection(std::shared_ptr<Ray> &ray, float &t);
     
     glm::vec3 getCenter() const {return center;}
     float getRadius() const {return radius;}
+    
+    void printObjectInfo();
+    void printObjectType();
 private:
     glm::vec3 center;
     float radius;

@@ -10,6 +10,7 @@
 
 #include "SceneObject.hpp"
 #include "Plane.hpp"
+#include "Ray.hpp"
 
 using namespace std;
 using namespace glm;
@@ -22,7 +23,8 @@ distance(0)
     
 }
 
-Plane::Plane(vec3 normal, int distance, vec3 color, float ambient, float diffuse) :
+Plane::Plane(vec3 normal, float distance, vec3 color, float ambient,
+             float diffuse) :
 SceneObject(color, ambient, diffuse),
 normal(normal),
 distance(distance)
@@ -30,10 +32,34 @@ distance(distance)
     
 }
 
-void Plane::print()
+bool Plane::testIntersection(shared_ptr<Ray> &ray, float &t)
+{
+    float denominator = dot(ray->getDirection(), normal);
+    
+    if (denominator < epsilon && denominator > -epsilon) {
+        return false;
+    }
+    else {
+        t = (distance - dot(ray->getOrigin(), normal))/denominator;
+        
+        if (t < -epsilon) {
+            return false;
+        }
+        else {
+            return true;
+        }
+    }
+}
+
+void Plane::printObjectInfo()
 {
     printf("- Type: Plane\n");
     printf("- Normal: {%g %g %g}\n", normal.x, normal.y, normal.z);
-    printf("- Distance: %d\n", distance);
-    SceneObject::print();
+    printf("- Distance: %g\n", distance);
+    SceneObject::printObjectInfo();
+}
+
+void Plane::printObjectType()
+{
+    printf("Object Type: Plane\n");
 }

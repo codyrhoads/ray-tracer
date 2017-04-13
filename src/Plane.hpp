@@ -12,21 +12,23 @@
 #include <fstream>
 #include <glm/gtc/type_ptr.hpp>
 
-#include "SceneObject.hpp"
-
 class Plane : public SceneObject
 {
 public:
     Plane();
-    Plane(glm::vec3 normal, int distance, glm::vec3 color, float ambient, float diffuse);
+    Plane(glm::vec3 normal, float distance, glm::vec3 color, float ambient,
+          float diffuse);
     
-    void print();
+    bool testIntersection(std::shared_ptr<Ray> &ray, float &t);
     
     glm::vec3 getNormal() const {return normal;}
-    int getDistance() const {return distance;}
+    float getDistance() const {return distance;}
+    
+    void printObjectInfo();
+    void printObjectType();
 private:
     glm::vec3 normal;
-    int distance;
+    float distance;
 };
 
 #endif /* Plane_hpp */

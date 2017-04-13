@@ -79,9 +79,11 @@ void FileParser::parseCamera(ifstream &file)
     getline(file, segment, '}');
     
     // Remove all whitespace from the string.
-    segment.erase(std::remove(segment.begin(), segment.end(), ' '), segment.end());
+    segment.erase(std::remove(segment.begin(), segment.end(), ' '),
+                  segment.end());
     // Remove all newlines from the string.
-    segment.erase(std::remove(segment.begin(), segment.end(), '\n'), segment.end());
+    segment.erase(std::remove(segment.begin(), segment.end(), '\n'),
+                  segment.end());
     
     found = segment.find("location");
     if (found != string::npos) {
@@ -195,9 +197,11 @@ void FileParser::parseLight(ifstream &file)
     getline(file, segment, '}');
     
     // Remove all whitespace from the string.
-    segment.erase(std::remove(segment.begin(), segment.end(), ' '), segment.end());
+    segment.erase(std::remove(segment.begin(), segment.end(), ' '),
+                  segment.end());
     // Remove all newlines from the string.
-    segment.erase(std::remove(segment.begin(), segment.end(), '\n'), segment.end());
+    segment.erase(std::remove(segment.begin(), segment.end(), '\n'),
+                  segment.end());
     
     found = segment.find("<");
     if (found != string::npos) {
@@ -264,9 +268,11 @@ void FileParser::parseSphere(ifstream &file)
     segment.append(temp);
     
     // Remove all whitespace from the string.
-    segment.erase(std::remove(segment.begin(), segment.end(), ' '), segment.end());
+    segment.erase(std::remove(segment.begin(), segment.end(), ' '),
+                  segment.end());
     // Remove all newlines from the string.
-    segment.erase(std::remove(segment.begin(), segment.end(), '\n'), segment.end());
+    segment.erase(std::remove(segment.begin(), segment.end(), '\n'),
+                  segment.end());
     
     found = segment.find("<");
     if (found != string::npos) {
@@ -319,25 +325,32 @@ void FileParser::parseSphere(ifstream &file)
         color.z = atof(temp.c_str());
     }
     
-    found = segment.find("ambient", end);
+    found = segment.find("ambient");
     if (found != string::npos) {
-        // Go to beginning of radius.
+        // Go to beginning of ambient factor.
         found += sizeof("ambient")-1;
         end = segment.find_first_not_of("0123456789.", found);
         temp = segment.substr(found, end-found);
         ambient = atof(temp.c_str());
     }
     
-    found = segment.find("diffuse", end);
+    found = segment.find("diffuse");
     if (found != string::npos) {
-        // Go to beginning of radius.
+        // Go to beginning of diffuse factor.
         found += sizeof("diffuse")-1;
         end = segment.find_first_not_of("0123456789.", found);
         temp = segment.substr(found, end-found);
         diffuse = atof(temp.c_str());
     }
     
-    shared_ptr<Sphere> sphere = make_shared<Sphere>(center, radius, color, ambient, diffuse);
+    // Start finding the transforms.
+//    found = segment.find("<", end);
+//    while (found != string::npos) {
+//        
+//    }
+    
+    shared_ptr<Sphere> sphere = make_shared<Sphere>(center, radius, color,
+                                                    ambient, diffuse);
     objects.push_back(sphere);
 }
 
@@ -361,9 +374,11 @@ void FileParser::parsePlane(ifstream &file)
     segment.append(temp);
     
     // Remove all whitespace from the string.
-    segment.erase(std::remove(segment.begin(), segment.end(), ' '), segment.end());
+    segment.erase(std::remove(segment.begin(), segment.end(), ' '),
+                  segment.end());
     // Remove all newlines from the string.
-    segment.erase(std::remove(segment.begin(), segment.end(), '\n'), segment.end());
+    segment.erase(std::remove(segment.begin(), segment.end(), '\n'),
+                  segment.end());
     
     found = segment.find("<");
     if (found != string::npos) {
@@ -416,24 +431,25 @@ void FileParser::parsePlane(ifstream &file)
         color.z = atof(temp.c_str());
     }
     
-    found = segment.find("ambient", end);
+    found = segment.find("ambient");
     if (found != string::npos) {
-        // Go to beginning of radius.
+        // Go to beginning of ambient factor.
         found += sizeof("ambient")-1;
         end = segment.find_first_not_of("0123456789.", found);
         temp = segment.substr(found, end-found);
         ambient = atof(temp.c_str());
     }
     
-    found = segment.find("diffuse", end);
+    found = segment.find("diffuse");
     if (found != string::npos) {
-        // Go to beginning of radius.
+        // Go to beginning of diffuse factor.
         found += sizeof("diffuse")-1;
         end = segment.find_first_not_of("0123456789.", found);
         temp = segment.substr(found, end-found);
         diffuse = atof(temp.c_str());
     }
 
-    shared_ptr<Plane> plane = make_shared<Plane>(normal, distance, color, ambient, diffuse);
+    shared_ptr<Plane> plane = make_shared<Plane>(normal, distance, color,
+                                                 ambient, diffuse);
     objects.push_back(plane);
 }

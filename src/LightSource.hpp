@@ -18,10 +18,10 @@ public:
     LightSource();
     LightSource(glm::vec3 location, glm::vec3 color);
     
-    void print();
-    
     glm::vec3 getLocation() const {return location;}
     glm::vec3 getColor() const {return color;}
+    
+    void printLightInfo();
 private:
     glm::vec3 location;
     glm::vec3 color;

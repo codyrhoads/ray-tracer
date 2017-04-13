@@ -27,7 +27,7 @@ color(color)
     
 }
 
-void LightSource::print()
+void LightSource::printLightInfo()
 {
     printf("- Location: {%g %g %g}\n", location.x, location.y, location.z);
     printf("- Color: {%g %g %g}\n", color.x, color.y, color.z);

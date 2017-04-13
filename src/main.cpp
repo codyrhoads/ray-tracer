@@ -64,36 +64,46 @@ int main(int argc, char **argv) {
     // Parse the input file, which should always be located at index 2.
     parser.parse(string(argv[2]));
     camera = parser.getCamera();
+    if (command != SCENEINFO) {
+        camera->setImageSize(atoi(argv[3]), atoi(argv[4]));
+    }
     lights = parser.getLights();
     objects = parser.getObjects();
     
     if (command == RENDER) {
-        
+        camera->render(objects);
     }
     else if (command == SCENEINFO) {
         printf("Camera:\n");
-        camera->print();
-        printf("\n");
+        camera->printCameraInfo();
         
-        printf("%d light(s)\n", (int)lights.size());
+        printf("\n---\n\n");
+        
+        printf("%d light(s)\n\n", (int)lights.size());
         for (int i = 0; i < lights.size(); i++) {
             printf("Light[%d]:\n", i);
-            lights.at(i)->print();
+            lights.at(i)->printLightInfo();
             printf("\n");
         }
         
-        printf("%d object(s)\n", (int)objects.size());
+        printf("---\n\n");
+        
+        printf("%d object(s)\n\n", (int)objects.size());
         for (int i = 0; i < objects.size(); i++) {
             printf("Object[%d]:\n", i);
-            objects.at(i)->print();
+            objects.at(i)->printObjectInfo();
             printf("\n");
         }
     }
     else if (command == PIXELRAY) {
-        
+        // argv[5] and argv[6] are the x and y coordinates of the pixel to test,
+        // respectively.
+        camera->pixelRay(atof(argv[5]), atof(argv[6]));
     }
-    else {
-        
+    else if (command == FIRSTHIT) {
+        // argv[5] and argv[6] are the x and y coordinates of the pixel to test,
+        // respectively.
+        camera->firstHit(objects, atof(argv[5]), atof(argv[6]));
     }
     
     return 0;
