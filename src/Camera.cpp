@@ -54,9 +54,9 @@ void Camera::render(const vector<shared_ptr<SceneObject>> objects)
             
             if (index != -1) {
                 // set pixel color to object color
-                rgbData[rgbIndex++] = objects.at(index)->getColor().r * 255;
-                rgbData[rgbIndex++] = objects.at(index)->getColor().g * 255;
-                rgbData[rgbIndex++] = objects.at(index)->getColor().b * 255;
+                rgbData[rgbIndex++] = round(objects.at(index)->getColor().r * 255);
+                rgbData[rgbIndex++] = round(objects.at(index)->getColor().g * 255);
+                rgbData[rgbIndex++] = round(objects.at(index)->getColor().b * 255);
             }
             else {
                 // set pixel to default color
@@ -94,7 +94,7 @@ void Camera::firstHit(const vector<shared_ptr<SceneObject>> objects,
         shared_ptr<SceneObject> obj = objects.at(index);
         printf("T = %g\n", t);
         printf("Object Type: %s\n", obj->getObjectType().c_str());
-        printf("Color: (%g, %g, %g)\n", obj->getColor().r, obj->getColor().g,
+        printf("Color: %g %g %g\n", obj->getColor().r, obj->getColor().g,
                obj->getColor().b);
     }
     else {

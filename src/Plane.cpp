@@ -6,8 +6,6 @@
 //
 //
 
-#include <stdio.h>
-
 #include "SceneObject.hpp"
 #include "Plane.hpp"
 #include "Ray.hpp"
