@@ -15,7 +15,7 @@ class Ray
 {
 public:
     Ray();
-    Ray(glm::vec3 origin, glm::vec3 dir);
+    Ray(const glm::vec3 &origin, const glm::vec3 &dir);
     
     void setIntersectionTime(float newT) {t = newT;}
     

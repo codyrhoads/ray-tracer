@@ -6,7 +6,6 @@
 //
 //
 
-#include "SceneObject.hpp"
 #include "Plane.hpp"
 #include "Ray.hpp"
 
@@ -21,8 +20,8 @@ distance(0)
     
 }
 
-Plane::Plane(vec3 normal, float distance, vec3 color, float ambient,
-             float diffuse) :
+Plane::Plane(const vec3 &normal, float distance, const vec3 &color,
+             float ambient, float diffuse) :
 SceneObject(color, ambient, diffuse),
 normal(normal),
 distance(distance)
@@ -30,7 +29,7 @@ distance(distance)
     
 }
 
-bool Plane::testIntersection(shared_ptr<Ray> &ray, float &t)
+bool Plane::testIntersection(const shared_ptr<Ray> &ray, float &t)
 {
     float denominator = dot(ray->getDirection(), normal);
     
@@ -52,8 +51,8 @@ bool Plane::testIntersection(shared_ptr<Ray> &ray, float &t)
 void Plane::printObjectInfo()
 {
     printf("- Type: Plane\n");
-    printf("- Normal: {%g %g %g}\n", normal.x, normal.y, normal.z);
-    printf("- Distance: %g\n", distance);
+    printf("- Normal: {%.4g %.4g %.4g}\n", normal.x, normal.y, normal.z);
+    printf("- Distance: %.4g\n", distance);
     SceneObject::printObjectInfo();
 }
 

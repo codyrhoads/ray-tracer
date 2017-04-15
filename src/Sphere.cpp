@@ -6,9 +6,6 @@
 //
 //
 
-#include <glm/gtc/type_ptr.hpp>
-
-#include "SceneObject.hpp"
 #include "Sphere.hpp"
 #include "Ray.hpp"
 
@@ -23,8 +20,8 @@ radius(0)
     
 }
 
-Sphere::Sphere(vec3 center, float radius, vec3 color, float ambient,
-               float diffuse) :
+Sphere::Sphere(const vec3 &center, float radius, const vec3 &color,
+               float ambient, float diffuse) :
 SceneObject(color, ambient, diffuse),
 center(center),
 radius(radius)
@@ -32,7 +29,7 @@ radius(radius)
     
 }
 
-bool Sphere::testIntersection(shared_ptr<Ray> &ray, float &t)
+bool Sphere::testIntersection(const shared_ptr<Ray> &ray, float &t)
 {
     float A = dot(ray->getDirection(), ray->getDirection());
     float B = 2 * dot(ray->getDirection(), ray->getOrigin() - center);
@@ -60,8 +57,8 @@ bool Sphere::testIntersection(shared_ptr<Ray> &ray, float &t)
 void Sphere::printObjectInfo()
 {
     printf("- Type: Sphere\n");
-    printf("- Center: {%g %g %g}\n", center.x, center.y, center.z);
-    printf("- Radius: %g\n", radius);
+    printf("- Center: {%.4g %.4g %.4g}\n", center.x, center.y, center.z);
+    printf("- Radius: %.4g\n", radius);
     SceneObject::printObjectInfo();
 }
 

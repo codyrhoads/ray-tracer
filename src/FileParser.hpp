@@ -9,6 +9,7 @@
 #ifndef FileParser_hpp
 #define FileParser_hpp
 
+#include <memory>
 #include <string>
 #include <vector>
 #include <fstream>

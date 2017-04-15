@@ -20,7 +20,7 @@ color(vec3(0, 0, 0))
     
 }
 
-LightSource::LightSource(vec3 location, vec3 color) :
+LightSource::LightSource(const vec3 &location, const vec3 &color) :
 location(location),
 color(color)
 {
@@ -29,6 +29,6 @@ color(color)
 
 void LightSource::printLightInfo()
 {
-    printf("- Location: {%g %g %g}\n", location.x, location.y, location.z);
-    printf("- Color: {%g %g %g}\n", color.x, color.y, color.z);
+    printf("- Location: {%.4g %.4g %.4g}\n", location.x, location.y, location.z);
+    printf("- Color: {%.4g %.4g %.4g}\n", color.x, color.y, color.z);
 }

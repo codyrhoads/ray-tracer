@@ -20,7 +20,7 @@ direction(vec3(0, 0, 0))
     
 }
 
-Ray::Ray(vec3 origin, vec3 dir) :
+Ray::Ray(const vec3 &origin, const vec3 &dir) :
 origin(origin),
 direction(dir)
 {
@@ -34,6 +34,6 @@ vec3 Ray::getPointAtTime(float t)
 
 void Ray::printRayInfo()
 {
-    printf("Ray: {%g %g %g} -> {%g %g %g}\n", origin.x, origin.y, origin.z,
+    printf("Ray: {%.4g %.4g %.4g} -> {%.4g %.4g %.4g}\n", origin.x, origin.y, origin.z,
            direction.x, direction.y, direction.z);
 }

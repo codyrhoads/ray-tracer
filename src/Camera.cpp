@@ -7,6 +7,8 @@
 //
 
 #include <stdio.h>
+#include <memory>
+#include <vector>
 
 #include "Camera.hpp"
 #include "SceneObject.hpp"
@@ -26,7 +28,8 @@ lookAt(vec3(0, 0, 0))
     
 }
 
-Camera::Camera(vec3 location, vec3 up, vec3 right, vec3 lookAt) :
+Camera::Camera(const vec3 &location, const vec3 &up, const vec3 &right,
+               const vec3 &lookAt) :
 location(location),
 up(up),
 right(right),
@@ -35,7 +38,7 @@ lookAt(lookAt)
     
 }
 
-void Camera::setImageSize(const int width, const int height)
+void Camera::setImageSize(int width, int height)
 {
     imageWidth = width;
     imageHeight = height;
@@ -77,7 +80,7 @@ void Camera::pixelRay(float pixelX, float pixelY)
 {
     setCurrRay(pixelX, pixelY);
     
-    printf("Pixel: [%g, %g] ", pixelX, pixelY);
+    printf("Pixel: [%.4g, %.4g] ", pixelX, pixelY);
     currRay->printRayInfo();
 }
 
@@ -92,9 +95,9 @@ void Camera::firstHit(const vector<shared_ptr<SceneObject>> objects,
     
     if (index != -1) {
         shared_ptr<SceneObject> obj = objects.at(index);
-        printf("T = %g\n", t);
+        printf("T = %.4g\n", t);
         printf("Object Type: %s\n", obj->getObjectType().c_str());
-        printf("Color: %g %g %g\n", obj->getColor().r, obj->getColor().g,
+        printf("Color: %.4g %.4g %.4g\n", obj->getColor().r, obj->getColor().g,
                obj->getColor().b);
     }
     else {
@@ -104,10 +107,10 @@ void Camera::firstHit(const vector<shared_ptr<SceneObject>> objects,
 
 void Camera::printCameraInfo()
 {
-    printf("- Location: {%g %g %g}\n", location.x, location.y, location.z);
-    printf("- Up: {%g %g %g}\n", up.x, up.y, up.z);
-    printf("- Right: {%g %g %g}\n", right.x, right.y, right.z);
-    printf("- Look at: {%g %g %g}\n", lookAt.x, lookAt.y, lookAt.z);
+    printf("- Location: {%.4g %.4g %.4g}\n", location.x, location.y, location.z);
+    printf("- Up: {%.4g %.4g %.4g}\n", up.x, up.y, up.z);
+    printf("- Right: {%.4g %.4g %.4g}\n", right.x, right.y, right.z);
+    printf("- Look at: {%.4g %.4g %.4g}\n", lookAt.x, lookAt.y, lookAt.z);
 }
 
 int Camera::getClosestObjectIndex(const vector<shared_ptr<SceneObject>> objects,

@@ -22,7 +22,7 @@ diffuse(0)
     
 }
 
-SceneObject::SceneObject(vec3 color, float ambient, float diffuse) :
+SceneObject::SceneObject(const vec3 &color, float ambient, float diffuse) :
 color(color),
 ambient(ambient),
 diffuse(diffuse)
@@ -30,17 +30,17 @@ diffuse(diffuse)
     
 }
 
-bool SceneObject::testIntersection(shared_ptr<Ray> &ray, float &t)
+bool SceneObject::testIntersection(const shared_ptr<Ray> &ray, float &t)
 {
     return false;
 }
 
 void SceneObject::printObjectInfo()
 {
-    printf("- Color: {%g %g %g}\n", color.x, color.y, color.z);
+    printf("- Color: {%.4g %.4g %.4g}\n", color.x, color.y, color.z);
     printf("- Material:\n");
-    printf("  - Ambient: %g\n", ambient);
-    printf("  - Diffuse: %g\n", diffuse);
+    printf("  - Ambient: %.4g\n", ambient);
+    printf("  - Diffuse: %.4g\n", diffuse);
 }
 
 string SceneObject::getObjectType()

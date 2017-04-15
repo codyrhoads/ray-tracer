@@ -9,14 +9,13 @@
 #ifndef LightSource_hpp
 #define LightSource_hpp
 
-#include <fstream>
 #include <glm/gtc/type_ptr.hpp>
 
 class LightSource
 {
 public:
     LightSource();
-    LightSource(glm::vec3 location, glm::vec3 color);
+    LightSource(const glm::vec3 &location, const glm::vec3 &color);
     
     glm::vec3 getLocation() const {return location;}
     glm::vec3 getColor() const {return color;}

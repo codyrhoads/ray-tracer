@@ -9,17 +9,16 @@
 #ifndef Plane_hpp
 #define Plane_hpp
 
-#include <fstream>
-#include <glm/gtc/type_ptr.hpp>
+#include "SceneObject.hpp"
 
 class Plane : public SceneObject
 {
 public:
     Plane();
-    Plane(glm::vec3 normal, float distance, glm::vec3 color, float ambient,
-          float diffuse);
+    Plane(const glm::vec3 &normal, float distance, const glm::vec3 &color,
+          float ambient, float diffuse);
     
-    bool testIntersection(std::shared_ptr<Ray> &ray, float &t);
+    bool testIntersection(const std::shared_ptr<Ray> &ray, float &t);
     
     glm::vec3 getNormal() const {return normal;}
     float getDistance() const {return distance;}

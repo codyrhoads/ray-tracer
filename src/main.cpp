@@ -2,6 +2,7 @@
 #include <fstream>
 #include <string>
 #include <vector>
+#include <memory>
 
 #include "FileParser.hpp"
 #include "SceneObject.hpp"

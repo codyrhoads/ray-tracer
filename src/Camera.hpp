@@ -9,8 +9,8 @@
 #ifndef Camera_hpp
 #define Camera_hpp
 
+#include <memory>
 #include <vector>
-#include <fstream>
 #include <glm/gtc/type_ptr.hpp>
 
 class SceneObject;
@@ -20,9 +20,10 @@ class Camera
 {
 public:
     Camera();
-    Camera(glm::vec3 location, glm::vec3 up, glm::vec3 right, glm::vec3 lookAt);
+    Camera(const glm::vec3 &location, const glm::vec3 &up,
+           const glm::vec3 &right, const glm::vec3 &lookAt);
     
-    void setImageSize(const int width, const int height);
+    void setImageSize(int width, int height);
     
     void render(const std::vector<std::shared_ptr<SceneObject>> objects);
     void pixelRay(float pixelX, float pixelY);
