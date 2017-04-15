@@ -81,7 +81,7 @@ int main(int argc, char **argv) {
         printf("\n---\n\n");
         
         printf("%d light(s)\n\n", (int)lights.size());
-        for (int i = 0; i < lights.size(); i++) {
+        for (unsigned int i = 0; i < lights.size(); i++) {
             printf("Light[%d]:\n", i);
             lights.at(i)->printLightInfo();
             printf("\n");
@@ -90,7 +90,7 @@ int main(int argc, char **argv) {
         printf("---\n\n");
         
         printf("%d object(s)\n\n", (int)objects.size());
-        for (int i = 0; i < objects.size(); i++) {
+        for (unsigned int i = 0; i < objects.size(); i++) {
             printf("Object[%d]:\n", i);
             objects.at(i)->printObjectInfo();
             printf("\n");
