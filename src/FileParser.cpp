@@ -7,6 +7,7 @@
 //
 
 #include <string>
+#include <algorithm>
 
 #include "FileParser.hpp"
 #include "Camera.hpp"
@@ -79,11 +80,9 @@ void FileParser::parseCamera(ifstream &file)
     getline(file, segment, '}');
     
     // Remove all whitespace from the string.
-    segment.erase(std::remove(segment.begin(), segment.end(), ' '),
-                  segment.end());
+    segment.erase(remove(segment.begin(), segment.end(), ' '), segment.end());
     // Remove all newlines from the string.
-    segment.erase(std::remove(segment.begin(), segment.end(), '\n'),
-                  segment.end());
+    segment.erase(remove(segment.begin(), segment.end(), '\n'), segment.end());
     
     found = segment.find("location");
     if (found != string::npos) {
@@ -197,11 +196,9 @@ void FileParser::parseLight(ifstream &file)
     getline(file, segment, '}');
     
     // Remove all whitespace from the string.
-    segment.erase(std::remove(segment.begin(), segment.end(), ' '),
-                  segment.end());
+    segment.erase(remove(segment.begin(), segment.end(), ' '), segment.end());
     // Remove all newlines from the string.
-    segment.erase(std::remove(segment.begin(), segment.end(), '\n'),
-                  segment.end());
+    segment.erase(remove(segment.begin(), segment.end(), '\n'), segment.end());
     
     found = segment.find("<");
     if (found != string::npos) {
@@ -260,7 +257,7 @@ void FileParser::parseSphere(ifstream &file)
     // for the '}' without a corresponding '{'. This means that it is the end
     // of the sphere information.
     getline(file, temp, '}');
-    while (std::count(temp.begin(), temp.end(), '{') > 0) {
+    while (count(temp.begin(), temp.end(), '{') > 0) {
         temp.append("}");
         segment.append(temp);
         getline(file, temp, '}');
@@ -268,11 +265,9 @@ void FileParser::parseSphere(ifstream &file)
     segment.append(temp);
     
     // Remove all whitespace from the string.
-    segment.erase(std::remove(segment.begin(), segment.end(), ' '),
-                  segment.end());
+    segment.erase(remove(segment.begin(), segment.end(), ' '), segment.end());
     // Remove all newlines from the string.
-    segment.erase(std::remove(segment.begin(), segment.end(), '\n'),
-                  segment.end());
+    segment.erase(remove(segment.begin(), segment.end(), '\n'), segment.end());
     
     found = segment.find("<");
     if (found != string::npos) {
@@ -366,7 +361,7 @@ void FileParser::parsePlane(ifstream &file)
     // for the '}' without a corresponding '{'. This means that it is the end
     // of the plane information.
     getline(file, temp, '}');
-    while (std::count(temp.begin(), temp.end(), '{') > 0) {
+    while (count(temp.begin(), temp.end(), '{') > 0) {
         temp.append("}");
         segment.append(temp);
         getline(file, temp, '}');
@@ -374,11 +369,9 @@ void FileParser::parsePlane(ifstream &file)
     segment.append(temp);
     
     // Remove all whitespace from the string.
-    segment.erase(std::remove(segment.begin(), segment.end(), ' '),
-                  segment.end());
+    segment.erase(remove(segment.begin(), segment.end(), ' '), segment.end());
     // Remove all newlines from the string.
-    segment.erase(std::remove(segment.begin(), segment.end(), '\n'),
-                  segment.end());
+    segment.erase(remove(segment.begin(), segment.end(), '\n'), segment.end());
     
     found = segment.find("<");
     if (found != string::npos) {

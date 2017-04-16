@@ -118,7 +118,7 @@ int Camera::getClosestObjectIndex(const vector<shared_ptr<SceneObject>> objects,
 {
     int index = -1;
     
-    for (int i = 0; i < objects.size(); i++) {
+    for (unsigned int i = 0; i < objects.size(); i++) {
         float currT;
         if (objects.at(i)->testIntersection(currRay, currT)) {
             if (index == -1 || t > currT) {
