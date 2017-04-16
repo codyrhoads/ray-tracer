@@ -37,11 +37,11 @@ void FileParser::parse(const string &filename)
     // major (camera, plane, sphere, etc.) or minor (pigment, finish).
     while (getline(file, segment, '{')) {
         // Remove all comments from the segment
-        int foundIndex = segment.find("//");
-        while (foundIndex != string::npos) {
-            segment.erase(segment.begin()+foundIndex,
-                          segment.begin()+segment.find('\n', foundIndex+1));
-            foundIndex = segment.find("//");
+        size_t found = segment.find("//");
+        while (found != string::npos) {
+            segment.erase(segment.begin()+found,
+                          segment.begin()+segment.find('\n', found+1));
+            found = segment.find("//");
         }
         
         /* PARSING CAMERA */
@@ -72,7 +72,7 @@ void FileParser::parseCamera(ifstream &file)
 {
     string segment;
     vec3 location, up, right, lookAt;
-    int found;
+    size_t found;
     
     // A '}' marks the end of a section. The camera doesn't have any subsections
     // that use curly brackets, so we can assume that the '}' is the end of the
@@ -186,7 +186,7 @@ void FileParser::parseCamera(ifstream &file)
 void FileParser::parseLight(ifstream &file)
 {
     vec3 location, color;
-    int found, end;
+    size_t found, end;
     string segment, temp;
     
     // A '}' marks the end of a section. The light source doesn't have any
@@ -250,7 +250,7 @@ void FileParser::parseSphere(ifstream &file)
 {
     vec3 center, color;
     float radius, ambient, diffuse;
-    int found = 0, end = 0;
+    size_t found = 0, end = 0;
     string segment = "", temp;
     
     // Since there are subsections denoted with curly braces, we have to search
@@ -354,7 +354,7 @@ void FileParser::parsePlane(ifstream &file)
     vec3 normal, color;
     int distance;
     float ambient, diffuse;
-    int found = 0, end = 0;
+    size_t found = 0, end = 0;
     string segment = "", temp;
     
     // Since there are subsections denoted with curly braces, we have to search
