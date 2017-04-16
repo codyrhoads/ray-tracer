@@ -50,7 +50,7 @@ void Camera::render(const vector<shared_ptr<SceneObject>> objects)
     int index, rgbIndex = 0;
     unsigned char *rgbData = new unsigned char[imageWidth*imageHeight*3];
     
-    for (int j = imageHeight; j > 0; j--) {
+    for (int j = imageHeight - 1; j >= 0; j--) {
         for (int i = 0; i < imageWidth; i++) {
             setCurrRay(i, j);
             index = getClosestObjectIndex(objects, t);
