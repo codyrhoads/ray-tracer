@@ -253,7 +253,7 @@ void FileParser::parseSphere(ifstream &file)
 {
     vec3 center = vec3(0, 0, 0);
     vec3 color = vec3(0, 0, 0);
-    float radius = 0, ambient = 0, diffuse = 0, specular = 0.1, roughness = 0.1;
+    float radius = 0, ambient = 0, diffuse = 0, specular = 0, roughness = 0.1;
     float metallic = 0.1, ior = 1.6;
     size_t found = 0, end = 0;
     string segment = "", temp;
@@ -480,7 +480,7 @@ void FileParser::parsePlane(ifstream &file)
     }
 
     shared_ptr<Plane> plane = make_shared<Plane>(normal, distance, color,
-                                                 ambient, diffuse, 0.1f,
+                                                 ambient, diffuse, 0,
                                                  0.1f, 0.1f, 1.6f);
     objects.push_back(plane);
 }

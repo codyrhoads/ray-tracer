@@ -86,9 +86,6 @@ vec3 Sphere::getColorBlinnPhong(const vector<shared_ptr<SceneObject>> &objects,
             
             colorSum += lights.at(i)->getColor() * (rd + rs);
         }
-        else {
-            colorSum = vec3(0, 0, 0);
-        }
     }
     
     return ka + colorSum;
@@ -137,9 +134,6 @@ vec3 Sphere::getColorCookTorrance(const vector<shared_ptr<SceneObject>> &objects
             
             colorSum += lights.at(i)->getColor() * NdotL * ((1-metallic) * rd +
                                                             metallic * rs);
-        }
-        else {
-            colorSum = vec3(0, 0, 0);
         }
     }
     
