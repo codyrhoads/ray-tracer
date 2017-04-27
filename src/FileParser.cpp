@@ -71,7 +71,10 @@ void FileParser::parse(const string &filename)
 void FileParser::parseCamera(ifstream &file)
 {
     string segment;
-    vec3 location, up, right, lookAt;
+    vec3 location = vec3(0, 0, 0);
+    vec3 up = vec3(0, 0, 0);
+    vec3 right = vec3(0, 0, 0);
+    vec3 lookAt = vec3(0, 0, 0);
     size_t found;
     
     // A '}' marks the end of a section. The camera doesn't have any subsections
@@ -185,7 +188,7 @@ void FileParser::parseCamera(ifstream &file)
 
 void FileParser::parseLight(ifstream &file)
 {
-    vec3 location, color;
+    vec3 location = vec3(0, 0, 0), color = vec3(0, 0, 0);
     size_t found, end;
     string segment, temp;
     
@@ -248,8 +251,9 @@ void FileParser::parseLight(ifstream &file)
 
 void FileParser::parseSphere(ifstream &file)
 {
-    vec3 center, color;
-    float radius, ambient, diffuse, specular, roughness;
+    vec3 center = vec3(0, 0, 0);
+    vec3 color = vec3(0, 0, 0);
+    float radius = 0, ambient = 0, diffuse = 0, specular = 0.1, roughness = 0.1;
     size_t found = 0, end = 0;
     string segment = "", temp;
     
@@ -356,12 +360,6 @@ void FileParser::parseSphere(ifstream &file)
         roughness = atof(temp.c_str());
     }
     
-    // Start finding the transforms.
-//    found = segment.find("<", end);
-//    while (found != string::npos) {
-//        
-//    }
-    
     shared_ptr<Sphere> sphere = make_shared<Sphere>(center, radius, color,
                                                     ambient, diffuse, specular,
                                                     roughness);
@@ -370,9 +368,10 @@ void FileParser::parseSphere(ifstream &file)
 
 void FileParser::parsePlane(ifstream &file)
 {
-    vec3 normal, color;
-    int distance;
-    float ambient, diffuse;
+    vec3 normal = vec3(0, 0, 0);
+    vec3 color = vec3(0, 0, 0);
+    int distance = 0;
+    float ambient = 0, diffuse = 0;
     size_t found = 0, end = 0;
     string segment = "", temp;
     
@@ -462,7 +461,7 @@ void FileParser::parsePlane(ifstream &file)
     }
 
     shared_ptr<Plane> plane = make_shared<Plane>(normal, distance, color,
-                                                 ambient, diffuse, 0.0f,
-                                                 0.0001f);
+                                                 ambient, diffuse, 0.1f,
+                                                 0.1f);
     objects.push_back(plane);
 }

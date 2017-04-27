@@ -41,11 +41,11 @@ bool Sphere::testIntersection(const shared_ptr<Ray> &ray, float &t)
     
     float discriminant = B*B - 4*A*C;
     
-    if (discriminant > epsilon) {
+    if (discriminant > 0) {
         t = (-B - sqrt(discriminant))/(2*A);
-        if (t < -epsilon) {
+        if (t < 0) {
             t = (-B + sqrt(discriminant))/(2*A);
-            if (t > epsilon) {
+            if (t > 0) {
                 return true;
             }
         }
@@ -72,7 +72,7 @@ vec3 Sphere::getColorBlinnPhong(const vector<shared_ptr<SceneObject>> &objects,
         int index = -1;
         vec3 L = normalize(lights.at(i)->getLocation() -
                            ray->getIntersectionPoint());
-        shared_ptr<Ray> shadowTestRay = make_shared<Ray>(ray->getIntersectionPoint(),
+        shared_ptr<Ray> shadowTestRay = make_shared<Ray>(ray->getIntersectionPoint() + epsilon*L,
                                                          L);
         index = shadowTestRay->getClosestObjectIndex(objects);
         
@@ -104,12 +104,13 @@ vec3 Sphere::getColorCookTorrance(const vector<shared_ptr<SceneObject>> &objects
     vec3 ka = color * ambient;
     vec3 kd = color * diffuse;
     vec3 N = normalize(ray->getIntersectionPoint() - center);
+    float alpha = pow(roughness, 2);
     
     for (unsigned int i = 0; i < lights.size(); i++) {
         int index = -1;
         vec3 L = normalize(lights.at(i)->getLocation() -
                            ray->getIntersectionPoint());
-        shared_ptr<Ray> shadowTestRay = make_shared<Ray>(ray->getIntersectionPoint(),
+        shared_ptr<Ray> shadowTestRay = make_shared<Ray>(ray->getIntersectionPoint() + epsilon*L,
                                                          L);
         index = shadowTestRay->getClosestObjectIndex(objects);
         
@@ -125,8 +126,8 @@ vec3 Sphere::getColorCookTorrance(const vector<shared_ptr<SceneObject>> &objects
             float NdotL = dot(N, L);
             vec3 rd = kd;
             
-            float exponent = (pow(NdotH, 2) - 1) / (pow(roughness, 2) * pow(NdotH, 2));
-            float D = (1/(M_PI * pow(roughness, 2))) * (exp(exponent)/pow(NdotH, 4));
+            float exponent = (pow(NdotH, 2) - 1) / (pow(alpha, 2) * pow(NdotH, 2));
+            float D = (1/(M_PI * pow(alpha, 2))) * (exp(exponent)/pow(NdotH, 4));
             
             float G = std::min(1.0f, (2 * NdotH * NdotV)/VdotH);
             G = std::min(G, (2 * NdotH * NdotL)/VdotH);

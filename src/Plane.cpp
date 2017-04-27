@@ -35,16 +35,15 @@ distance(distance)
 
 bool Plane::testIntersection(const shared_ptr<Ray> &ray, float &t)
 {
-    vec3 offsetOrigin = ray->getOrigin() + epsilon*ray->getDirection();
     float denominator = dot(ray->getDirection(), normal);
     
     if (denominator < epsilon && denominator > -epsilon) {
         return false;
     }
     else {
-        t = (distance - dot(offsetOrigin, normal))/denominator;
+        t = (distance - dot(ray->getOrigin(), normal))/denominator;
         
-        if (t < -epsilon) {
+        if (t < 0) {
             return false;
         }
         else {
@@ -66,7 +65,7 @@ vec3 Plane::getColorBlinnPhong(const vector<shared_ptr<SceneObject>> &objects,
         int index = -1;
         vec3 L = normalize(lights.at(i)->getLocation() -
                            ray->getIntersectionPoint());
-        shared_ptr<Ray> shadowTestRay = make_shared<Ray>(ray->getIntersectionPoint(),
+        shared_ptr<Ray> shadowTestRay = make_shared<Ray>(ray->getIntersectionPoint() + epsilon*L,
                                                          L);
         index = shadowTestRay->getClosestObjectIndex(objects);
         
@@ -90,12 +89,13 @@ vec3 Plane::getColorCookTorrance(const vector<shared_ptr<SceneObject>> &objects,
     vec3 ka = color * ambient;
     vec3 kd = color * diffuse;
     vec3 N = normal;
+    float alpha = pow(roughness, 2);
     
     for (unsigned int i = 0; i < lights.size(); i++) {
         int index = -1;
         vec3 L = normalize(lights.at(i)->getLocation() -
                            ray->getIntersectionPoint());
-        shared_ptr<Ray> shadowTestRay = make_shared<Ray>(ray->getIntersectionPoint(),
+        shared_ptr<Ray> shadowTestRay = make_shared<Ray>(ray->getIntersectionPoint() + epsilon*L,
                                                          L);
         index = shadowTestRay->getClosestObjectIndex(objects);
         
@@ -111,8 +111,8 @@ vec3 Plane::getColorCookTorrance(const vector<shared_ptr<SceneObject>> &objects,
             float NdotL = dot(N, L);
             vec3 rd = kd;
             
-            float exponent = (pow(NdotH, 2) - 1) / (pow(roughness, 2) * pow(NdotH, 2));
-            float D = (1/(M_PI * pow(roughness, 2))) * (exp(exponent)/pow(NdotH, 4));
+            float exponent = (pow(NdotH, 2) - 1) / (pow(alpha, 2) * pow(NdotH, 2));
+            float D = (1/(M_PI * pow(alpha, 2))) * (exp(exponent)/pow(NdotH, 4));
             
             float G = std::min(1.0f, (2 * NdotH * NdotV)/VdotH);
             G = std::min(G, (2 * NdotH * NdotL)/VdotH);

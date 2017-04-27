@@ -36,7 +36,7 @@ private:
     glm::vec3 center;
     float radius;
     
-    const float epsilon = 0.01;
+    const float epsilon = 0.001;
 };
 
 #endif /* Sphere_hpp */

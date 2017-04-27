@@ -36,7 +36,7 @@ private:
     glm::vec3 normal;
     float distance;
     
-    const float epsilon = 0.0005;
+    const float epsilon = 0.0001;
 };
 
 #endif /* Plane_hpp */
