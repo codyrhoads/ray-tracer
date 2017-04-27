@@ -44,8 +44,6 @@ public:
 protected:
     glm::vec3 color;
     float ambient, diffuse, specular, roughness;
-    
-    const float epsilon = 0.0001;
 };
 
 #endif /* SceneObject_hpp */

@@ -35,10 +35,9 @@ radius(radius)
 
 bool Sphere::testIntersection(const shared_ptr<Ray> &ray, float &t)
 {
-    vec3 offsetOrigin = ray->getOrigin() + epsilon*ray->getDirection();
     float A = dot(ray->getDirection(), ray->getDirection());
-    float B = 2 * dot(ray->getDirection(), offsetOrigin - center);
-    float C = dot(offsetOrigin - center, offsetOrigin - center) - radius*radius;
+    float B = 2 * dot(ray->getDirection(), ray->getOrigin() - center);
+    float C = dot(ray->getOrigin() - center, ray->getOrigin() - center) - radius*radius;
     
     float discriminant = B*B - 4*A*C;
     
