@@ -10,6 +10,8 @@
 #include "LightSource.hpp"
 #include "Ray.hpp"
 
+#define INDEX_OF_REFRACTION 0.4
+
 using namespace std;
 using namespace glm;
 
@@ -75,7 +77,10 @@ vec3 Sphere::getColorBlinnPhong(const vector<shared_ptr<SceneObject>> &objects,
                                                          L);
         index = shadowTestRay->getClosestObjectIndex(objects);
         
-        if (index == -1) {
+        float lightT = dot(normalize(shadowTestRay->getDirection()),
+                           lights.at(i)->getLocation() - shadowTestRay->getOrigin());
+        
+        if (index == -1 || shadowTestRay->getIntersectionTime() > lightT) {
             vec3 V = normalize(-ray->getDirection());
             vec3 H = normalize(V + L);
             
@@ -109,7 +114,10 @@ vec3 Sphere::getColorCookTorrance(const vector<shared_ptr<SceneObject>> &objects
                                                          L);
         index = shadowTestRay->getClosestObjectIndex(objects);
         
-        if (index == -1) {
+        float lightT = dot(normalize(shadowTestRay->getDirection()),
+                           lights.at(i)->getLocation() - shadowTestRay->getOrigin());
+        
+        if (index == -1 || shadowTestRay->getIntersectionTime() > lightT) {
             vec3 V = normalize(-ray->getDirection());
             vec3 H = normalize(V + L);
             float NdotH = dot(N, H);
@@ -117,19 +125,17 @@ vec3 Sphere::getColorCookTorrance(const vector<shared_ptr<SceneObject>> &objects
             float VdotH = dot(V, H);
             float NdotL = dot(N, L);
             vec3 rd = kd;
-            float rs;
-            float D, G, F;
             
-            float exponent = (pow(NdotH, 2) - 1) / (pow(roughness, 2) *
-                                                    pow(NdotH, 2));
-            D = (1/(M_PI * pow(roughness, 2))) * (exp(exponent)/pow(NdotH, 4));
+            float exponent = (pow(NdotH, 2) - 1) / (pow(roughness, 2) * pow(NdotH, 2));
+            float D = (1/(M_PI * pow(roughness, 2))) * (exp(exponent)/pow(NdotH, 4));
             
-            G = std::min(1.0f, (2 * NdotH * NdotV)/VdotH);
+            float G = std::min(1.0f, (2 * NdotH * NdotV)/VdotH);
             G = std::min(G, (2 * NdotH * NdotL)/VdotH);
             
-            F = pow(1 - VdotH, 5);
+            float F0 = pow(INDEX_OF_REFRACTION-1, 2)/pow(INDEX_OF_REFRACTION+1, 2);
+            float F = F0 + (1-F0) * pow(1 - VdotH, 5);
             
-            rs = (D * G * F)/(4 * NdotL * NdotV);
+            float rs = (D * G * F)/(4 * NdotL * NdotV);
             
             colorSum += lights.at(i)->getColor() * NdotL * (0.6f * rd +
                                                             0.4f * rs);
