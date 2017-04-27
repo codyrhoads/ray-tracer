@@ -90,10 +90,14 @@ void Camera::renderCookTorrance(const vector<shared_ptr<SceneObject>> &objects,
             index = currRay->getClosestObjectIndex(objects);
             
             if (index != -1) {
+                vec3 color = objects.at(index)->getColorCookTorrance(objects,
+                                                                     lights,
+                                                                     currRay);
+                
                 // set pixel color to object color
-                rgbData[rgbIndex++] = round(objects.at(index)->getColor().r * 255);
-                rgbData[rgbIndex++] = round(objects.at(index)->getColor().g * 255);
-                rgbData[rgbIndex++] = round(objects.at(index)->getColor().b * 255);
+                rgbData[rgbIndex++] = round(std::min(color.r, 1.0f) * 255);
+                rgbData[rgbIndex++] = round(std::min(color.g, 1.0f) * 255);
+                rgbData[rgbIndex++] = round(std::min(color.b, 1.0f) * 255);
             }
             else {
                 // set pixel to default color

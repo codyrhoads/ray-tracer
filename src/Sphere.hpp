@@ -29,16 +29,12 @@ public:
     
     glm::vec3 getCenter() const {return center;}
     float getRadius() const {return radius;}
-    float getSpecular() const {return specular;}
-    float getRoughness() const {return roughness;}
     
     void printObjectInfo();
     std::string getObjectType();
 private:
     glm::vec3 center;
     float radius;
-    float specular;
-    float roughness;
 };
 
 #endif /* Sphere_hpp */

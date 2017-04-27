@@ -462,6 +462,7 @@ void FileParser::parsePlane(ifstream &file)
     }
 
     shared_ptr<Plane> plane = make_shared<Plane>(normal, distance, color,
-                                                 ambient, diffuse);
+                                                 ambient, diffuse, 0.0f,
+                                                 0.0001f);
     objects.push_back(plane);
 }
