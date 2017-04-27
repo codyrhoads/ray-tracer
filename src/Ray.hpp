@@ -9,20 +9,26 @@
 #ifndef Ray_hpp
 #define Ray_hpp
 
+#include <memory>
+#include <vector>
 #include <glm/gtc/type_ptr.hpp>
 
-class Ray
+class SceneObject;
+
+class Ray : public std::enable_shared_from_this<Ray>
 {
 public:
     Ray();
     Ray(const glm::vec3 &origin, const glm::vec3 &dir);
     
-    void setIntersectionTime(float newT) {t = newT;}
+    int getClosestObjectIndex(const std::vector<std::shared_ptr<SceneObject>> &objects);
     
-    glm::vec3 getPointAtTime(float t);
+    void setIntersectionTime(const float newT) {t = newT;}
+    
+    float getIntersectionTime() const {return t;}
+    glm::vec3 getIntersectionPoint() const {return origin + t * direction;}
     glm::vec3 getOrigin() const {return origin;}
     glm::vec3 getDirection() const {return direction;}
-    float getClosestIntersectionTime() const {return t;}
     
     void printRayInfo();
 private:

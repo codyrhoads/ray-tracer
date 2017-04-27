@@ -8,6 +8,7 @@
 
 #include <stdio.h>
 
+#include "SceneObject.hpp"
 #include "Ray.hpp"
 
 using namespace std;
@@ -15,21 +16,35 @@ using namespace glm;
 
 Ray::Ray() :
 origin(vec3(0, 0, 0)),
-direction(vec3(0, 0, 0))
+direction(vec3(0, 0, 0)),
+t(0)
 {
     
 }
 
 Ray::Ray(const vec3 &origin, const vec3 &dir) :
 origin(origin),
-direction(dir)
+direction(dir),
+t(0)
 {
     
 }
 
-vec3 Ray::getPointAtTime(float t)
+int Ray::getClosestObjectIndex(const vector<shared_ptr<SceneObject>> &objects)
 {
-    return origin + t * direction;
+    int index = -1;
+    
+    for (unsigned int i = 0; i < objects.size(); i++) {
+        float currT;
+        if (objects.at(i)->testIntersection(shared_from_this(), currT)) {
+            if (index == -1 || t > currT) {
+                t = currT;
+                index = i;
+            }
+        }
+    }
+    
+    return index;
 }
 
 void Ray::printRayInfo()

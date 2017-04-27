@@ -1,10 +1,12 @@
 # ray-tracer
 
 ## Parsing
-Parses Camera, Lights, Spheres, and Planes correctly. Comments are ignored. Ignores transforms for now.
+Parses Camera, Lights, Spheres, and Planes correctly. Comments are ignored. Ignores object transforms for now.
 
 ## Rendering
-Images are rendered correctly.
+planes.pov currently has lighting issues. Otherwise, images render fine with Blinn-Phong.
+
+Alternate rendering technique is not complete yet.
 
 ## Diagnostic/Testing
-All test commands (sceneinfo, pixelray, firsthit) are functioning as intended.
+All test commands (sceneinfo, pixelray, firsthit, pixelcolor) are functioning as intended.

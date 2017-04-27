@@ -12,7 +12,7 @@
 using namespace std;
 
 enum Command {
-    RENDER, SCENEINFO, PIXELRAY, FIRSTHIT
+    RENDER, SCENEINFO, PIXELRAY, FIRSTHIT, PIXELCOLOR
 };
 
 int main(int argc, char **argv) {
@@ -57,6 +57,13 @@ int main(int argc, char **argv) {
             return 0;
         }
     }
+    else if (!strcmp(argv[1], "pixelcolor")) {
+        command = PIXELCOLOR;
+        if (argc < 7) {
+            printf("Not enough arguments for pixelcolor.\n");
+            return 0;
+        }
+    }
     else {
         printf("Unrecognized command.\n");
         return 0;
@@ -72,7 +79,12 @@ int main(int argc, char **argv) {
     objects = parser.getObjects();
     
     if (command == RENDER) {
-        camera->render(objects);
+        if (argc < 6) {
+            camera->renderBlinnPhong(objects, lights);
+        }
+        else {
+            camera->renderCookTorrance(objects, lights);
+        }
     }
     else if (command == SCENEINFO) {
         printf("Camera:\n");
@@ -105,6 +117,20 @@ int main(int argc, char **argv) {
         // argv[5] and argv[6] are the x and y coordinates of the pixel to test,
         // respectively.
         camera->firstHit(objects, atof(argv[5]), atof(argv[6]));
+    }
+    else if (command == PIXELCOLOR) {
+        // argv[5] and argv[6] are the x and y coordinates of the pixel to test,
+        // respectively.
+        // If there are 7 or less arguments, then it is Blinn-Phong. Otherwise,
+        // Cook-Torrance.
+        if (argc < 8) {
+            camera->pixelColor(objects, lights, atof(argv[5]), atof(argv[6]),
+                               "Blinn-Phong");
+        }
+        else {
+            camera->pixelColor(objects, lights, atof(argv[5]), atof(argv[6]),
+                               "Alternate");
+        }
     }
     
     return 0;

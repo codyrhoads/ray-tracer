@@ -7,12 +7,11 @@
 //
 
 #include <stdio.h>
-#include <memory>
-#include <vector>
 
 #include "Camera.hpp"
 #include "SceneObject.hpp"
 #include "Ray.hpp"
+#include "LightSource.hpp"
 #define STB_IMAGE_WRITE_IMPLEMENTATION
 #include "stb_image_write.h"
 
@@ -38,22 +37,57 @@ lookAt(lookAt)
     
 }
 
-void Camera::setImageSize(int width, int height)
+void Camera::setImageSize(const int width, const int height)
 {
     imageWidth = width;
     imageHeight = height;
 }
 
-void Camera::render(const vector<shared_ptr<SceneObject>> objects)
+void Camera::renderBlinnPhong(const vector<shared_ptr<SceneObject>> &objects,
+                              const vector<shared_ptr<LightSource>> &lights)
 {
-    float t;
     int index, rgbIndex = 0;
     unsigned char *rgbData = new unsigned char[imageWidth*imageHeight*3];
     
     for (int j = imageHeight - 1; j >= 0; j--) {
         for (int i = 0; i < imageWidth; i++) {
             setCurrRay(i, j);
-            index = getClosestObjectIndex(objects, t);
+            index = currRay->getClosestObjectIndex(objects);
+            
+            if (index != -1) {
+                vec3 color = objects.at(index)->getColorBlinnPhong(objects,
+                                                                   lights,
+                                                                   currRay);
+                // set pixel color to object color
+                rgbData[rgbIndex++] = round(std::min(color.r, 1.0f) * 255);
+                rgbData[rgbIndex++] = round(std::min(color.g, 1.0f) * 255);
+                rgbData[rgbIndex++] = round(std::min(color.b, 1.0f) * 255);
+            }
+            else {
+                // set pixel to default color
+                rgbData[rgbIndex++] = 0;
+                rgbData[rgbIndex++] = 0;
+                rgbData[rgbIndex++] = 0;
+            }
+        }
+    }
+    
+    stbi_write_png("output.png", imageWidth, imageHeight, 3, rgbData,
+                   sizeof(unsigned char)*3*imageWidth);
+    
+    delete[] rgbData;
+}
+
+void Camera::renderCookTorrance(const vector<shared_ptr<SceneObject>> &objects,
+                                const vector<shared_ptr<LightSource>> &lights)
+{
+    int index, rgbIndex = 0;
+    unsigned char *rgbData = new unsigned char[imageWidth*imageHeight*3];
+    
+    for (int j = imageHeight - 1; j >= 0; j--) {
+        for (int i = 0; i < imageWidth; i++) {
+            setCurrRay(i, j);
+            index = currRay->getClosestObjectIndex(objects);
             
             if (index != -1) {
                 // set pixel color to object color
@@ -76,7 +110,7 @@ void Camera::render(const vector<shared_ptr<SceneObject>> objects)
     delete[] rgbData;
 }
 
-void Camera::pixelRay(float pixelX, float pixelY)
+void Camera::pixelRay(const float pixelX, const float pixelY)
 {
     setCurrRay(pixelX, pixelY);
     
@@ -84,21 +118,51 @@ void Camera::pixelRay(float pixelX, float pixelY)
     currRay->printRayInfo();
 }
 
-void Camera::firstHit(const vector<shared_ptr<SceneObject>> objects,
-                      float pixelX, float pixelY)
+void Camera::firstHit(const vector<shared_ptr<SceneObject>> &objects,
+                      const float pixelX, const float pixelY)
 {
-    float t;
-    
     pixelRay(pixelX, pixelY);
     
-    int index = getClosestObjectIndex(objects, t);
+    int index = currRay->getClosestObjectIndex(objects);
     
     if (index != -1) {
         shared_ptr<SceneObject> obj = objects.at(index);
-        printf("T = %.4g\n", t);
+        printf("T = %.4g\n", currRay->getIntersectionTime());
         printf("Object Type: %s\n", obj->getObjectType().c_str());
         printf("Color: %.4g %.4g %.4g\n", obj->getColor().r, obj->getColor().g,
                obj->getColor().b);
+    }
+    else {
+        printf("No Hit\n");
+    }
+}
+
+void Camera::pixelColor(const vector<shared_ptr<SceneObject>> &objects,
+                        const vector<shared_ptr<LightSource>> &lights,
+                        const float pixelX, const float pixelY,
+                        const string BRDF)
+{
+    pixelRay(pixelX, pixelY);
+    
+    int index = currRay->getClosestObjectIndex(objects);
+    
+    if (index != -1) {
+        vec3 color;
+        shared_ptr<SceneObject> obj = objects.at(index);
+        if (BRDF == "Blinn-Phong") {
+            color = obj->getColorBlinnPhong(objects, lights, currRay);
+        }
+        else {
+            color = obj->getColorCookTorrance(objects, lights, currRay);
+        }
+        
+        printf("T = %.4g\n", currRay->getIntersectionTime());
+        printf("Object Type: %s\n", obj->getObjectType().c_str());
+        printf("BRDF: %s\n", BRDF.c_str());
+        printf("Color: (%.4g, %.4g, %.4g)\n",
+               round(std::min(color.r, 1.0f) * 255),
+               round(std::min(color.g, 1.0f) * 255),
+               round(std::min(color.b, 1.0f) * 255));
     }
     else {
         printf("No Hit\n");
@@ -113,25 +177,7 @@ void Camera::printCameraInfo()
     printf("- Look at: {%.4g %.4g %.4g}\n", lookAt.x, lookAt.y, lookAt.z);
 }
 
-int Camera::getClosestObjectIndex(const vector<shared_ptr<SceneObject>> objects,
-                                  float &t)
-{
-    int index = -1;
-    
-    for (unsigned int i = 0; i < objects.size(); i++) {
-        float currT;
-        if (objects.at(i)->testIntersection(currRay, currT)) {
-            if (index == -1 || t > currT) {
-                t = currT;
-                index = i;
-            }
-        }
-    }
-    
-    return index;
-}
-
-void Camera::setCurrRay(float pixelX, float pixelY)
+void Camera::setCurrRay(const float pixelX, const float pixelY)
 {
     float screenU, screenV;
     vec3 screenIntersect, dir;

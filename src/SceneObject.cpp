@@ -7,7 +7,6 @@
 //
 
 #include <stdio.h>
-#include <string>
 
 #include "SceneObject.hpp"
 
@@ -22,7 +21,8 @@ diffuse(0)
     
 }
 
-SceneObject::SceneObject(const vec3 &color, float ambient, float diffuse) :
+SceneObject::SceneObject(const vec3 &color, const float ambient,
+                         const float diffuse) :
 color(color),
 ambient(ambient),
 diffuse(diffuse)
@@ -33,6 +33,20 @@ diffuse(diffuse)
 bool SceneObject::testIntersection(const shared_ptr<Ray> &ray, float &t)
 {
     return false;
+}
+
+vec3 SceneObject::getColorBlinnPhong(const vector<shared_ptr<SceneObject>> &objects,
+                                     const vector<shared_ptr<LightSource>> &lights,
+                                     const shared_ptr<Ray> &ray)
+{    
+    return vec3(0, 0, 0);
+}
+
+vec3 SceneObject::getColorCookTorrance(const vector<shared_ptr<SceneObject>> &objects,
+                                       const vector<shared_ptr<LightSource>> &lights,
+                                       const shared_ptr<Ray> &ray)
+{
+    return vec3(0, 0, 0);
 }
 
 void SceneObject::printObjectInfo()

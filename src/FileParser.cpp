@@ -91,19 +91,19 @@ void FileParser::parseCamera(ifstream &file)
         
         // Go to beginning of x value for location.
         found += sizeof("location");
-        end = segment.find(",", found);
+        end = (int)segment.find(",", found);
         temp = segment.substr(found, end-found);
         location.x = atof(temp.c_str());
         
         // Go to beginning of y value for location.
         found = end + 1;
-        end = segment.find(",", found);
+        end = (int)segment.find(",", found);
         temp = segment.substr(found, end-found);
         location.y = atof(temp.c_str());
         
         // Go to beginning of y value for location.
         found = end + 1;
-        end = segment.find(">", found);
+        end = (int)segment.find(">", found);
         temp = segment.substr(found, end-found);
         location.z = atof(temp.c_str());
     }
@@ -115,19 +115,19 @@ void FileParser::parseCamera(ifstream &file)
         
         // Go to beginning of x value for up.
         found += sizeof("up");
-        end = segment.find(",", found);
+        end = (int)segment.find(",", found);
         temp = segment.substr(found, end-found);
         up.x = atof(temp.c_str());
         
         // Go to beginning of y value for up.
         found = end + 1;
-        end = segment.find(",", found);
+        end = (int)segment.find(",", found);
         temp = segment.substr(found, end-found);
         up.y = atof(temp.c_str());
         
         // Go to beginning of y value for up.
         found = end + 1;
-        end = segment.find(">", found);
+        end = (int)segment.find(">", found);
         temp = segment.substr(found, end-found);
         up.z = atof(temp.c_str());
     }
@@ -139,19 +139,19 @@ void FileParser::parseCamera(ifstream &file)
         
         // Go to beginning of x value for right.
         found += sizeof("right");
-        end = segment.find(",", found);
+        end = (int)segment.find(",", found);
         temp = segment.substr(found, end-found);
         right.x = atof(temp.c_str());
         
         // Go to beginning of y value for right.
         found = end + 1;
-        end = segment.find(",", found);
+        end = (int)segment.find(",", found);
         temp = segment.substr(found, end-found);
         right.y = atof(temp.c_str());
         
         // Go to beginning of y value for right.
         found = end + 1;
-        end = segment.find(">", found);
+        end = (int)segment.find(">", found);
         temp = segment.substr(found, end-found);
         right.z = atof(temp.c_str());
     }
@@ -163,19 +163,19 @@ void FileParser::parseCamera(ifstream &file)
         
         // Go to beginning of x value for lookAt.
         found += sizeof("look_at");
-        end = segment.find(",", found);
+        end = (int)segment.find(",", found);
         temp = segment.substr(found, end-found);
         lookAt.x = atof(temp.c_str());
         
         // Go to beginning of y value for lookAt.
         found = end + 1;
-        end = segment.find(",", found);
+        end = (int)segment.find(",", found);
         temp = segment.substr(found, end-found);
         lookAt.y = atof(temp.c_str());
         
         // Go to beginning of y value for lookAt.
         found = end + 1;
-        end = segment.find(">", found);
+        end = (int)segment.find(">", found);
         temp = segment.substr(found, end-found);
         lookAt.z = atof(temp.c_str());
     }
@@ -249,7 +249,7 @@ void FileParser::parseLight(ifstream &file)
 void FileParser::parseSphere(ifstream &file)
 {
     vec3 center, color;
-    float radius, ambient, diffuse;
+    float radius, ambient, diffuse, specular, roughness;
     size_t found = 0, end = 0;
     string segment = "", temp;
     
@@ -338,6 +338,24 @@ void FileParser::parseSphere(ifstream &file)
         diffuse = atof(temp.c_str());
     }
     
+    found = segment.find("specular");
+    if (found != string::npos) {
+        // Go to beginning of diffuse factor.
+        found += sizeof("specular")-1;
+        end = segment.find_first_not_of("0123456789.", found);
+        temp = segment.substr(found, end-found);
+        specular = atof(temp.c_str());
+    }
+    
+    found = segment.find("roughness");
+    if (found != string::npos) {
+        // Go to beginning of diffuse factor.
+        found += sizeof("roughness")-1;
+        end = segment.find_first_not_of("0123456789.", found);
+        temp = segment.substr(found, end-found);
+        roughness = atof(temp.c_str());
+    }
+    
     // Start finding the transforms.
 //    found = segment.find("<", end);
 //    while (found != string::npos) {
@@ -345,7 +363,8 @@ void FileParser::parseSphere(ifstream &file)
 //    }
     
     shared_ptr<Sphere> sphere = make_shared<Sphere>(center, radius, color,
-                                                    ambient, diffuse);
+                                                    ambient, diffuse, specular,
+                                                    roughness);
     objects.push_back(sphere);
 }
 

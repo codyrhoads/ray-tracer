@@ -11,10 +11,12 @@
 
 #include <memory>
 #include <vector>
+#include <string>
 #include <glm/gtc/type_ptr.hpp>
 
 class SceneObject;
 class Ray;
+class LightSource;
 
 class Camera
 {
@@ -23,12 +25,19 @@ public:
     Camera(const glm::vec3 &location, const glm::vec3 &up,
            const glm::vec3 &right, const glm::vec3 &lookAt);
     
-    void setImageSize(int width, int height);
+    void setImageSize(const int width, const int height);
     
-    void render(const std::vector<std::shared_ptr<SceneObject>> objects);
-    void pixelRay(float pixelX, float pixelY);
-    void firstHit(const std::vector<std::shared_ptr<SceneObject>> objects,
-                  float pixelX, float pixelY);
+    void renderBlinnPhong(const std::vector<std::shared_ptr<SceneObject>> &objects,
+                          const std::vector<std::shared_ptr<LightSource>> &lights);
+    void renderCookTorrance(const std::vector<std::shared_ptr<SceneObject>> &objects,
+                            const std::vector<std::shared_ptr<LightSource>> &lights);
+    void pixelRay(const float pixelX, const float pixelY);
+    void firstHit(const std::vector<std::shared_ptr<SceneObject>> &objects,
+                  const float pixelX, const float pixelY);
+    void pixelColor(const std::vector<std::shared_ptr<SceneObject>> &objects,
+                    const std::vector<std::shared_ptr<LightSource>> &lights,
+                    const float pixelX, const float pixelY,
+                    const std::string BRDF);
     
     glm::vec3 getLocation() const {return location;}
     glm::vec3 getUp() const {return up;}
@@ -37,9 +46,7 @@ public:
     
     void printCameraInfo();
 private:
-    int getClosestObjectIndex(const std::vector<std::shared_ptr<SceneObject>> objects,
-                              float &t);
-    void setCurrRay(float pixelX, float pixelY);
+    void setCurrRay(const float pixelX, const float pixelY);
     
     std::shared_ptr<Ray> currRay;
     glm::vec3 location, up, right, lookAt;

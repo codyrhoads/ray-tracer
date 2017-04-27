@@ -10,18 +10,27 @@
 #define SceneObject_hpp
 
 #include <memory>
+#include <vector>
 #include <string>
 #include <glm/gtc/type_ptr.hpp>
 
 class Ray;
+class LightSource;
 
 class SceneObject
 {
 public:
     SceneObject();
-    SceneObject(const glm::vec3 &color, float ambient, float diffuse);
+    SceneObject(const glm::vec3 &color, const float ambient,
+                const float diffuse);
     
     virtual bool testIntersection(const std::shared_ptr<Ray> &ray, float &t);
+    virtual glm::vec3 getColorBlinnPhong(const std::vector<std::shared_ptr<SceneObject>> &objects,
+                                         const std::vector<std::shared_ptr<LightSource>> &lights,
+                                         const std::shared_ptr<Ray> &ray);
+    virtual glm::vec3 getColorCookTorrance(const std::vector<std::shared_ptr<SceneObject>> &objects,
+                                           const std::vector<std::shared_ptr<LightSource>> &lights,
+                                           const std::shared_ptr<Ray> &ray);
     
     glm::vec3 getColor() const {return color;}
     float getAmbient() const {return ambient;}
