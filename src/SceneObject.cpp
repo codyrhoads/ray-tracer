@@ -17,20 +17,25 @@ SceneObject::SceneObject() :
 color(vec3(0, 0, 0)),
 ambient(0),
 diffuse(0),
-specular(0),
-roughness(0.0001)
+specular(0.1),
+roughness(0.1),
+metallic(0.1),
+ior(1.6)
 {
     
 }
 
 SceneObject::SceneObject(const vec3 &color, const float ambient,
                          const float diffuse, const float specular,
-                         const float roughness) :
+                         const float roughness, const float metallic,
+                         const float ior) :
 color(color),
 ambient(ambient),
 diffuse(diffuse),
 specular(specular),
-roughness(roughness)
+roughness(roughness),
+metallic(metallic),
+ior(ior)
 {
     
 }

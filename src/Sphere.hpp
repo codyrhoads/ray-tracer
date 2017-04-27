@@ -17,7 +17,7 @@ public:
     Sphere();
     Sphere(const glm::vec3 &center, const float radius, const glm::vec3 &color,
            const float ambient, const float diffuse, const float specular,
-           const float roughness);
+           const float roughness, const float metallic, const float ior);
     
     bool testIntersection(const std::shared_ptr<Ray> &ray, float &t);
     glm::vec3 getColorBlinnPhong(const std::vector<std::shared_ptr<SceneObject>> &objects,

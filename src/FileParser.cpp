@@ -254,6 +254,7 @@ void FileParser::parseSphere(ifstream &file)
     vec3 center = vec3(0, 0, 0);
     vec3 color = vec3(0, 0, 0);
     float radius = 0, ambient = 0, diffuse = 0, specular = 0.1, roughness = 0.1;
+    float metallic = 0.1, ior = 1.6;
     size_t found = 0, end = 0;
     string segment = "", temp;
     
@@ -344,7 +345,7 @@ void FileParser::parseSphere(ifstream &file)
     
     found = segment.find("specular");
     if (found != string::npos) {
-        // Go to beginning of diffuse factor.
+        // Go to beginning of specular factor.
         found += sizeof("specular")-1;
         end = segment.find_first_not_of("0123456789.", found);
         temp = segment.substr(found, end-found);
@@ -353,16 +354,34 @@ void FileParser::parseSphere(ifstream &file)
     
     found = segment.find("roughness");
     if (found != string::npos) {
-        // Go to beginning of diffuse factor.
+        // Go to beginning of roughness factor.
         found += sizeof("roughness")-1;
         end = segment.find_first_not_of("0123456789.", found);
         temp = segment.substr(found, end-found);
         roughness = atof(temp.c_str());
     }
     
+    found = segment.find("metallic");
+    if (found != string::npos) {
+        // Go to beginning of metallic factor.
+        found += sizeof("metallic")-1;
+        end = segment.find_first_not_of("0123456789.", found);
+        temp = segment.substr(found, end-found);
+        metallic = atof(temp.c_str());
+    }
+    
+    found = segment.find("ior");
+    if (found != string::npos) {
+        // Go to beginning of ior factor.
+        found += sizeof("ior")-1;
+        end = segment.find_first_not_of("0123456789.", found);
+        temp = segment.substr(found, end-found);
+        ior = atof(temp.c_str());
+    }
+    
     shared_ptr<Sphere> sphere = make_shared<Sphere>(center, radius, color,
                                                     ambient, diffuse, specular,
-                                                    roughness);
+                                                    roughness, metallic, ior);
     objects.push_back(sphere);
 }
 
@@ -462,6 +481,6 @@ void FileParser::parsePlane(ifstream &file)
 
     shared_ptr<Plane> plane = make_shared<Plane>(normal, distance, color,
                                                  ambient, diffuse, 0.1f,
-                                                 0.1f);
+                                                 0.1f, 0.1f, 1.6f);
     objects.push_back(plane);
 }

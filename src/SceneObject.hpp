@@ -23,7 +23,7 @@ public:
     SceneObject();
     SceneObject(const glm::vec3 &color, const float ambient,
                 const float diffuse, const float specular,
-                const float roughness);
+                const float roughness, const float metallic, const float ior);
     
     virtual bool testIntersection(const std::shared_ptr<Ray> &ray, float &t);
     virtual glm::vec3 getColorBlinnPhong(const std::vector<std::shared_ptr<SceneObject>> &objects,
@@ -43,7 +43,7 @@ public:
     virtual std::string getObjectType();
 protected:
     glm::vec3 color;
-    float ambient, diffuse, specular, roughness;
+    float ambient, diffuse, specular, roughness, metallic, ior;
 };
 
 #endif /* SceneObject_hpp */
