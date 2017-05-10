@@ -15,9 +15,9 @@ using namespace glm;
 
 Triangle::Triangle() :
 SceneObject(),
-v0(vec3(0, 0, 0)),
-v1(vec3(0, 0, 0)),
-v2(vec3(0, 0, 0))
+v0(vec3(0)),
+v1(vec3(0)),
+v2(vec3(0))
 {
     
 }
@@ -101,87 +101,12 @@ bool Triangle::testIntersection(const shared_ptr<Ray> &ray, float &t)
     return true;
 }
 
-vec3 Triangle::findLocalColorBlinnPhong(const vector<shared_ptr<SceneObject>> &objects,
-                                        const vector<shared_ptr<LightSource>> &lights,
-                                        const shared_ptr<Ray> &ray)
-{
-    vec3 colorSum = vec3(0, 0, 0);
-    const vec3 ka = color * ambient;
-    const vec3 kd = color * diffuse;
-    const vec3 N = normalize(cross(v1 - v0, v2 - v0));
-    
-    for (unsigned int i = 0; i < lights.size(); i++) {
-        int index = -1;
-        const vec3 L = normalize(lights.at(i)->getLocation() - ray->getIntersectionPoint());
-        
-        shared_ptr<Ray> shadowTestRay = make_shared<Ray>(ray->getIntersectionPoint() + epsilon * L, L);
-        index = shadowTestRay->findClosestObjectIndex(objects);
-        
-        const float lightT = dot(normalize(shadowTestRay->getDirection()),
-                                 lights.at(i)->getLocation() - shadowTestRay->getOrigin());
-        
-        if (index == -1 || shadowTestRay->getIntersectionTime() > lightT) {
-            const vec3 rd = kd * std::max(0.0f, dot(N, L));
-            colorSum += lights.at(i)->getColor() * rd;
-        }
-    }
-    
-    return ka + colorSum;
-}
-
-vec3 Triangle::findLocalColorCookTorrance(const vector<shared_ptr<SceneObject>> &objects,
-                                          const vector<shared_ptr<LightSource>> &lights,
-                                          const shared_ptr<Ray> &ray)
-{
-    vec3 colorSum = vec3(0, 0, 0);
-    const vec3 ka = color * ambient;
-    const vec3 kd = color * diffuse;
-    const vec3 N = normalize(cross(v1 - v0, v2 - v0));
-    const float alpha = pow(roughness, 2);
-    
-    for (unsigned int i = 0; i < lights.size(); i++) {
-        int index = -1;
-        const vec3 L = normalize(lights.at(i)->getLocation() -
-                                 ray->getIntersectionPoint());
-        shared_ptr<Ray> shadowTestRay = make_shared<Ray>(ray->getIntersectionPoint() + epsilon * L, L);
-        index = shadowTestRay->findClosestObjectIndex(objects);
-        
-        const float lightT = dot(normalize(shadowTestRay->getDirection()),
-                                 lights.at(i)->getLocation() - shadowTestRay->getOrigin());
-        
-        if (index == -1 || shadowTestRay->getIntersectionTime() > lightT) {
-            const vec3 V = normalize(-ray->getDirection());
-            const vec3 H = normalize(V + L);
-            const float NdotH = dot(N, H);
-            const float NdotV = dot(N, V);
-            const float VdotH = dot(V, H);
-            const float NdotL = dot(N, L);
-            const vec3 rd = kd;
-            
-            const float exponent = (pow(NdotH, 2) - 1) / (pow(alpha, 2) * pow(NdotH, 2));
-            const float D = (1/(M_PI * pow(alpha, 2))) * (exp(exponent)/pow(NdotH, 4));
-            
-            float G = std::min(1.0f, (2 * NdotH * NdotV)/VdotH);
-            G = std::min(G, (2 * NdotH * NdotL)/VdotH);
-            
-            const float F0 = pow(ior - 1, 2)/pow(ior + 1, 2);
-            const float F = F0 + (1 - F0) * pow(1 - VdotH, 5);
-            
-            const float rs = (D * G * F)/(4 * NdotL * NdotV);
-            
-            colorSum += lights.at(i)->getColor() * NdotL * ((1 - metallic) * rd + metallic * rs);
-        }
-    }
-    
-    return ka + colorSum;
-}
-
 vec3 Triangle::findReflectedColor(const vector<shared_ptr<SceneObject>> &objects,
                                   const vector<shared_ptr<LightSource>> &lights,
                                   const shared_ptr<Ray> &ray, const int bouncesLeft,
                                   const string &BRDF)
 {
-    vec3 reflectedColor = vec3(0, 0, 0);
+    vec3 reflectedColor = vec3(0);
     int index = -1;
     const vec3 n = normalize(cross(v1 - v0, v2 - v0));
     const vec3 d = ray->getDirection();

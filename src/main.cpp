@@ -37,7 +37,7 @@ int main(int argc, char **argv)
             printf("Not enough arguments for render.\n");
             return 0;
         }
-        if (argc > 5) {
+        if (argc > 5 && !strcmp(argv[5], "-altbrdf")) {
             BRDF = "Alternate";
         }
     }
@@ -68,7 +68,7 @@ int main(int argc, char **argv)
             printf("Not enough arguments for pixelcolor.\n");
             return 0;
         }
-        if (argc > 7) {
+        if (argc > 7 && !strcmp(argv[7], "-altbrdf")) {
             BRDF = "Alternate";
         }
     }
@@ -78,7 +78,7 @@ int main(int argc, char **argv)
             printf("Not enough arguments for pixeltrace.\n");
             return 0;
         }
-        if (argc > 7) {
+        if (argc > 7 && !strcmp(argv[7], "-altbrdf")) {
             BRDF = "Alternate";
         }
     }

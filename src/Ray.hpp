@@ -30,7 +30,7 @@ public:
     glm::vec3 getOrigin() const {return origin;}
     glm::vec3 getDirection() const {return direction;}
     
-    void printRayInfo();
+    std::string getRayInfo();
 private:
     glm::vec3 origin, direction;
     float t;

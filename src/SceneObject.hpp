@@ -40,19 +40,24 @@ public:
     virtual void printObjectInfo();
     virtual std::string getObjectType() {return "NULL";}
 protected:
-    virtual glm::vec3 findLocalColorBlinnPhong(const std::vector<std::shared_ptr<SceneObject>> &objects,
-                                               const std::vector<std::shared_ptr<LightSource>> &lights,
-                                               const std::shared_ptr<Ray> &ray);
-    virtual glm::vec3 findLocalColorCookTorrance(const std::vector<std::shared_ptr<SceneObject>> &objects,
-                                                 const std::vector<std::shared_ptr<LightSource>> &lights,
-                                                 const std::shared_ptr<Ray> &ray);
+    glm::vec3 findLocalColorBlinnPhong(const std::vector<std::shared_ptr<SceneObject>> &objects,
+                                       const std::vector<std::shared_ptr<LightSource>> &lights,
+                                       const std::shared_ptr<Ray> &ray);
+    glm::vec3 findLocalColorCookTorrance(const std::vector<std::shared_ptr<SceneObject>> &objects,
+                                         const std::vector<std::shared_ptr<LightSource>> &lights,
+                                         const std::shared_ptr<Ray> &ray);
     virtual glm::vec3 findReflectedColor(const std::vector<std::shared_ptr<SceneObject>> &objects,
                                          const std::vector<std::shared_ptr<LightSource>> &lights,
                                          const std::shared_ptr<Ray> &ray, const int bouncesLeft,
                                          const std::string &BRDF);
+    virtual glm::vec3 getNormal() const {return glm::vec3(0);}
+    virtual glm::vec3 getNormalAtPoint(const glm::vec3 &point) const {return glm::vec3(0);}
     
     glm::vec3 color;
     float ambient, diffuse, specular, reflection, roughness, metallic, ior;
+    
+    const float sphereEpsilon = 0.001;
+    const float epsilon = 0.0001;
 };
 
 #endif /* SceneObject_hpp */

@@ -76,10 +76,10 @@ void FileParser::parse(const string &filename)
 void FileParser::parseCamera(ifstream &file)
 {
     string segment;
-    vec3 location = vec3(0, 0, 0);
-    vec3 up = vec3(0, 0, 0);
-    vec3 right = vec3(0, 0, 0);
-    vec3 lookAt = vec3(0, 0, 0);
+    vec3 location = vec3(0);
+    vec3 up = vec3(0);
+    vec3 right = vec3(0);
+    vec3 lookAt = vec3(0);
     
     // A '}' marks the end of a section. The camera doesn't have any subsections
     // that use curly brackets, so we can assume that the '}' is the end of the
@@ -101,7 +101,7 @@ void FileParser::parseCamera(ifstream &file)
 
 void FileParser::parseLight(ifstream &file)
 {
-    vec3 location = vec3(0, 0, 0), color = vec3(0, 0, 0);
+    vec3 location = vec3(0), color = vec3(0);
     string segment, temp;
     
     // A '}' marks the end of a section. The light source doesn't have any
@@ -124,8 +124,8 @@ void FileParser::parseLight(ifstream &file)
 
 void FileParser::parseSphere(ifstream &file)
 {
-    vec3 center = vec3(0, 0, 0);
-    vec3 color = vec3(0, 0, 0);
+    vec3 center = vec3(0);
+    vec3 color = vec3(0);
     float radius = 0, ambient = 0, diffuse = 0, specular = 0, reflection = 0;
     float roughness = 0.3, metallic = 0.1, ior = 1.6;
     size_t newStart = 0;
@@ -167,8 +167,8 @@ void FileParser::parseSphere(ifstream &file)
 
 void FileParser::parsePlane(ifstream &file)
 {
-    vec3 normal = vec3(0, 0, 0);
-    vec3 color = vec3(0, 0, 0);
+    vec3 normal = vec3(0);
+    vec3 color = vec3(0);
     float distance = 0;
     float ambient = 0, diffuse = 0, specular = 0, reflection = 0;
     float roughness = 0.3, metallic = 0.1, ior = 1.6;
@@ -211,10 +211,10 @@ void FileParser::parsePlane(ifstream &file)
 
 void FileParser::parseTriangle(ifstream &file)
 {
-    vec3 v0 = vec3(0, 0, 0);
-    vec3 v1 = vec3(0, 0, 0);
-    vec3 v2 = vec3(0, 0, 0);
-    vec3 color = vec3(0, 0, 0);
+    vec3 v0 = vec3(0);
+    vec3 v1 = vec3(0);
+    vec3 v2 = vec3(0);
+    vec3 color = vec3(0);
     float ambient = 0, diffuse = 0, specular = 0, reflection = 0;
     float roughness = 0.3, metallic = 0.1, ior = 1.6;
     size_t newStart = 0;

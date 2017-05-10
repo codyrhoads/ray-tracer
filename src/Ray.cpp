@@ -6,7 +6,8 @@
 //
 //
 
-#include <stdio.h>
+#include <sstream>
+#include <iomanip>
 
 #include "SceneObject.hpp"
 #include "Ray.hpp"
@@ -15,8 +16,8 @@ using namespace std;
 using namespace glm;
 
 Ray::Ray() :
-origin(vec3(0, 0, 0)),
-direction(vec3(0, 0, 0)),
+origin(vec3(0)),
+direction(vec3(0)),
 t(0)
 {
     
@@ -47,8 +48,11 @@ int Ray::findClosestObjectIndex(const vector<shared_ptr<SceneObject>> &objects)
     return index;
 }
 
-void Ray::printRayInfo()
+string Ray::getRayInfo()
 {
-    printf("Ray: {%.4g %.4g %.4g} -> {%.4g %.4g %.4g}\n", origin.x, origin.y, origin.z,
-           direction.x, direction.y, direction.z);
+    ostringstream info;
+    info << setprecision(4) << "Ray: {" << origin.x << " " << origin.y << " " << origin.z
+         << "} -> {" << direction.x << " " << direction.y << " " << direction.z << "}";
+    
+    return info.str();
 }

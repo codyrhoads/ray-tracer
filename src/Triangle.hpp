@@ -25,16 +25,11 @@ public:
     void printObjectInfo();
     std::string getObjectType() {return "Triangle";}
 private:
-    glm::vec3 findLocalColorBlinnPhong(const std::vector<std::shared_ptr<SceneObject>> &objects,
-                                       const std::vector<std::shared_ptr<LightSource>> &lights,
-                                       const std::shared_ptr<Ray> &ray);
-    glm::vec3 findLocalColorCookTorrance(const std::vector<std::shared_ptr<SceneObject>> &objects,
-                                         const std::vector<std::shared_ptr<LightSource>> &lights,
-                                         const std::shared_ptr<Ray> &ray);
     glm::vec3 findReflectedColor(const std::vector<std::shared_ptr<SceneObject>> &objects,
                                  const std::vector<std::shared_ptr<LightSource>> &lights,
                                  const std::shared_ptr<Ray> &ray, const int bouncesLeft,
                                  const std::string &BRDF);
+    glm::vec3 getNormal() const {return normalize(cross(v1 - v0, v2 - v0));}
     
     glm::vec3 v0, v1, v2;
     

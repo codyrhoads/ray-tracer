@@ -14,8 +14,8 @@ using namespace std;
 using namespace glm;
 
 LightSource::LightSource() :
-location(vec3(0, 0, 0)),
-color(vec3(0, 0, 0))
+location(vec3(0)),
+color(vec3(0))
 {
     
 }

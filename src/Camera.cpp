@@ -21,10 +21,10 @@ using namespace std;
 using namespace glm;
 
 Camera::Camera() :
-location(vec3(0, 0, 0)),
-up(vec3(0, 0, 0)),
-right(vec3(0, 0, 0)),
-lookAt(vec3(0, 0, 0))
+location(vec3(0)),
+up(vec3(0)),
+right(vec3(0)),
+lookAt(vec3(0))
 {
     
 }
@@ -87,7 +87,8 @@ void Camera::pixelRay(const float pixelX, const float pixelY)
     setCurrRay(pixelX, pixelY);
     
     printf("Pixel: [%.4g, %.4g] ", pixelX, pixelY);
-    currRay->printRayInfo();
+    //currRay->printRayInfo();
+    printf("%s\n", currRay->getRayInfo().c_str());
 }
 
 void Camera::firstHit(const vector<shared_ptr<SceneObject>> &objects,
@@ -141,7 +142,29 @@ void Camera::pixelTrace(const vector<shared_ptr<SceneObject>> &objects,
                         const float pixelX, const float pixelY,
                         const string &BRDF)
 {
-    printf("Not implemented\n");
+//    setCurrRay(pixelX, pixelY);
+//    printf("Pixel: [%.4g, %.4g] ", pixelX, pixelY);
+//    
+//    int index = currRay->findClosestObjectIndex(objects);
+//    
+//    if (index != 1) {
+//        vec3 color;
+//        shared_ptr<SceneObject> obj = objects.at(index);
+//        string trace = "o - Iteration type: Primary\n";
+//        trace += "|   " + currRay->getRayInfo() + "\n|    ";
+//        
+//        color = obj->getShadedColor(objects, lights, currRay, MAX_BOUNCES, BRDF);
+//        
+//        printf("Color: (%.4g, %.4g, %.4g)\n",
+//               round(std::min(color.r, 1.0f) * 255),
+//               round(std::min(color.g, 1.0f) * 255),
+//               round(std::min(color.b, 1.0f) * 255));
+//        printf("%s", trace.c_str());
+//    }
+//    else {
+//        printf("No Hit\n");
+//    }
+    printf("Not implemented");
 }
 
 void Camera::printCameraInfo()
