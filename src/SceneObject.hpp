@@ -26,10 +26,10 @@ public:
                 const float metallic, const float ior);
     
     virtual bool testIntersection(const std::shared_ptr<Ray> &ray, float &t);
-    virtual glm::vec3 getShadedColor(const std::vector<std::shared_ptr<SceneObject>> &objects,
-                                     const std::vector<std::shared_ptr<LightSource>> &lights,
-                                     const std::shared_ptr<Ray> &ray, const int bouncesLeft,
-                                     const std::string &BRDF);
+    glm::vec3 getShadedColor(const std::vector<std::shared_ptr<SceneObject>> &objects,
+                             const std::vector<std::shared_ptr<LightSource>> &lights,
+                             const std::shared_ptr<Ray> &ray, const int bouncesLeft,
+                             const std::string &BRDF);
     
     glm::vec3 getColor() const {return color;}
     float getAmbient() const {return ambient;}
@@ -46,10 +46,11 @@ protected:
     glm::vec3 findLocalColorCookTorrance(const std::vector<std::shared_ptr<SceneObject>> &objects,
                                          const std::vector<std::shared_ptr<LightSource>> &lights,
                                          const std::shared_ptr<Ray> &ray);
-    virtual glm::vec3 findReflectedColor(const std::vector<std::shared_ptr<SceneObject>> &objects,
-                                         const std::vector<std::shared_ptr<LightSource>> &lights,
-                                         const std::shared_ptr<Ray> &ray, const int bouncesLeft,
-                                         const std::string &BRDF);
+    glm::vec3 findReflectedColor(const std::vector<std::shared_ptr<SceneObject>> &objects,
+                                 const std::vector<std::shared_ptr<LightSource>> &lights,
+                                 const std::shared_ptr<Ray> &ray, const int bouncesLeft,
+                                 const std::string &BRDF);
+    
     virtual glm::vec3 getNormal() const {return glm::vec3(0);}
     virtual glm::vec3 getNormalAtPoint(const glm::vec3 &point) const {return glm::vec3(0);}
     

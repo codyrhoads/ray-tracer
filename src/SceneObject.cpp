@@ -185,7 +185,35 @@ vec3 SceneObject::findReflectedColor(const vector<shared_ptr<SceneObject>> &obje
                                      const shared_ptr<Ray> &ray, const int bouncesLeft,
                                      const string &BRDF)
 {
-    return vec3(0);
+    vec3 reflectedColor = vec3(0);
+    int index = -1;
+    vec3 n;
+    if (getObjectType() == "Sphere") {
+        n = getNormalAtPoint(ray->getIntersectionPoint());
+    }
+    else {
+        n = getNormal();
+    }
+    const vec3 d = ray->getDirection();
+    const vec3 reflectedDirection = normalize(d - 2 * (dot(d, n)) * n);
+    
+    shared_ptr<Ray> reflectedRay;
+    if (getObjectType() == "Sphere") {
+        reflectedRay = make_shared<Ray>(ray->getIntersectionPoint() + reflectedDirection * sphereEpsilon,
+                                        reflectedDirection);
+    }
+    else {
+        reflectedRay = make_shared<Ray>(ray->getIntersectionPoint() + reflectedDirection * epsilon,
+                                        reflectedDirection);
+    }
+    index = reflectedRay->findClosestObjectIndex(objects);
+    
+    if (index > -1) {
+        reflectedColor = objects.at(index)->getShadedColor(objects, lights, reflectedRay,
+                                                           bouncesLeft, BRDF);
+    }
+    
+    return reflectedColor;
 }
 
 void SceneObject::printObjectInfo()

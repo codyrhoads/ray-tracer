@@ -28,11 +28,6 @@ public:
     void printObjectInfo();
     std::string getObjectType() {return "Plane";}
 private:
-    glm::vec3 findReflectedColor(const std::vector<std::shared_ptr<SceneObject>> &objects,
-                                 const std::vector<std::shared_ptr<LightSource>> &lights,
-                                 const std::shared_ptr<Ray> &ray, const int bouncesLeft,
-                                 const std::string &BRDF);
-    
     glm::vec3 normal;
     float distance;
     

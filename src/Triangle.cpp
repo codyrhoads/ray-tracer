@@ -101,29 +101,6 @@ bool Triangle::testIntersection(const shared_ptr<Ray> &ray, float &t)
     return true;
 }
 
-vec3 Triangle::findReflectedColor(const vector<shared_ptr<SceneObject>> &objects,
-                                  const vector<shared_ptr<LightSource>> &lights,
-                                  const shared_ptr<Ray> &ray, const int bouncesLeft,
-                                  const string &BRDF)
-{
-    vec3 reflectedColor = vec3(0);
-    int index = -1;
-    const vec3 n = normalize(cross(v1 - v0, v2 - v0));
-    const vec3 d = ray->getDirection();
-    const vec3 reflectedDirection = normalize(d - 2 * (dot(d, n)) * n);
-    
-    shared_ptr<Ray> reflectedRay = make_shared<Ray>(ray->getIntersectionPoint() + reflectedDirection * epsilon,
-                                                    reflectedDirection);
-    index = reflectedRay->findClosestObjectIndex(objects);
-    
-    if (index > -1) {
-        reflectedColor = objects.at(index)->getShadedColor(objects, lights, reflectedRay,
-                                                           bouncesLeft, BRDF);
-    }
-    
-    return reflectedColor;
-}
-
 void Triangle::printObjectInfo()
 {
     printf("- Type: Triangle\n");

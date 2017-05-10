@@ -56,29 +56,6 @@ bool Sphere::testIntersection(const shared_ptr<Ray> &ray, float &t)
     return false;
 }
 
-vec3 Sphere::findReflectedColor(const vector<shared_ptr<SceneObject>> &objects,
-                                const vector<shared_ptr<LightSource>> &lights,
-                                const shared_ptr<Ray> &ray, const int bouncesLeft,
-                                const string &BRDF)
-{
-    vec3 reflectedColor = vec3(0);
-    int index = -1;
-    const vec3 n = normalize(ray->getIntersectionPoint() - center);
-    const vec3 d = ray->getDirection();
-    const vec3 reflectedDirection = normalize(d - 2 * (dot(d, n)) * n);
-    
-    shared_ptr<Ray> reflectedRay = make_shared<Ray>(ray->getIntersectionPoint() + reflectedDirection * epsilon,
-                                                    reflectedDirection);
-    index = reflectedRay->findClosestObjectIndex(objects);
-    
-    if (index > -1) {
-        reflectedColor = objects.at(index)->getShadedColor(objects, lights, reflectedRay,
-                                                           bouncesLeft, BRDF);
-    }
-    
-    return reflectedColor;
-}
-
 void Sphere::printObjectInfo()
 {
     printf("- Type: Sphere\n");
