@@ -33,16 +33,16 @@ radius(radius)
 
 bool Sphere::testIntersection(const shared_ptr<Ray> &ray, float &t)
 {
-    float A = dot(ray->getDirection(), ray->getDirection());
-    float B = 2 * dot(ray->getDirection(), ray->getOrigin() - center);
-    float C = dot(ray->getOrigin() - center, ray->getOrigin() - center) - radius*radius;
+    const float A = dot(ray->getDirection(), ray->getDirection());
+    const float B = 2 * dot(ray->getDirection(), ray->getOrigin() - center);
+    const float C = dot(ray->getOrigin() - center, ray->getOrigin() - center) - pow(radius, 2);
     
-    float discriminant = B*B - 4*A*C;
+    const float discriminant = (B * B) - (4 * A * C);
     
     if (discriminant > 0) {
-        t = (-B - sqrt(discriminant))/(2*A);
+        t = (-B - sqrt(discriminant))/(2 * A);
         if (t < 0) {
-            t = (-B + sqrt(discriminant))/(2*A);
+            t = (-B + sqrt(discriminant))/(2 * A);
             if (t > 0) {
                 return true;
             }
@@ -60,29 +60,28 @@ vec3 Sphere::getColorBlinnPhong(const vector<shared_ptr<SceneObject>> &objects,
                                 const shared_ptr<Ray> &ray)
 {
     vec3 colorSum = vec3(0, 0, 0);
-    vec3 ka = color * ambient;
-    vec3 kd = color * diffuse;
-    vec3 ks = color * specular;
-    vec3 N = normalize(ray->getIntersectionPoint() - center);
-    float power = (2.0/pow(roughness, 2.0)) - 2.0;
+    const vec3 ka = color * ambient;
+    const vec3 kd = color * diffuse;
+    const vec3 ks = color * specular;
+    const vec3 N = normalize(ray->getIntersectionPoint() - center);
+    const float power = (2.0/pow(roughness, 2.0)) - 2.0;
     
     for (unsigned int i = 0; i < lights.size(); i++) {
         int index = -1;
-        vec3 L = normalize(lights.at(i)->getLocation() -
-                           ray->getIntersectionPoint());
-        shared_ptr<Ray> shadowTestRay = make_shared<Ray>(ray->getIntersectionPoint() + epsilon*L,
-                                                         L);
+        const vec3 L = normalize(lights.at(i)->getLocation() - ray->getIntersectionPoint());
+        
+        shared_ptr<Ray> shadowTestRay = make_shared<Ray>(ray->getIntersectionPoint() + epsilon * L, L);
         index = shadowTestRay->getClosestObjectIndex(objects);
         
-        float lightT = dot(normalize(shadowTestRay->getDirection()),
-                           lights.at(i)->getLocation() - shadowTestRay->getOrigin());
+        const float lightT = dot(normalize(shadowTestRay->getDirection()),
+                                 lights.at(i)->getLocation() - shadowTestRay->getOrigin());
         
         if (index == -1 || shadowTestRay->getIntersectionTime() > lightT) {
-            vec3 V = normalize(-ray->getDirection());
-            vec3 H = normalize(V + L);
+            const vec3 V = normalize(-ray->getDirection());
+            const vec3 H = normalize(V + L);
             
-            vec3 rd = kd * std::max(0.0f, dot(N, L));
-            vec3 rs = ks * pow(std::max(0.0f, dot(H, N)), power);
+            const vec3 rd = kd * std::max(0.0f, dot(N, L));
+            const vec3 rs = ks * pow(std::max(0.0f, dot(H, N)), power);
             
             colorSum += lights.at(i)->getColor() * (rd + rs);
         }
@@ -96,44 +95,42 @@ vec3 Sphere::getColorCookTorrance(const vector<shared_ptr<SceneObject>> &objects
                                   const shared_ptr<Ray> &ray)
 {
     vec3 colorSum = vec3(0, 0, 0);
-    vec3 ka = color * ambient;
-    vec3 kd = color * diffuse;
-    vec3 N = normalize(ray->getIntersectionPoint() - center);
-    float alpha = pow(roughness, 2);
+    const vec3 ka = color * ambient;
+    const vec3 kd = color * diffuse;
+    const vec3 N = normalize(ray->getIntersectionPoint() - center);
+    const float alpha = pow(roughness, 2);
     
     for (unsigned int i = 0; i < lights.size(); i++) {
         int index = -1;
-        vec3 L = normalize(lights.at(i)->getLocation() -
-                           ray->getIntersectionPoint());
-        shared_ptr<Ray> shadowTestRay = make_shared<Ray>(ray->getIntersectionPoint() + epsilon*L,
-                                                         L);
+        const vec3 L = normalize(lights.at(i)->getLocation() - ray->getIntersectionPoint());
+        
+        shared_ptr<Ray> shadowTestRay = make_shared<Ray>(ray->getIntersectionPoint() + epsilon * L, L);
         index = shadowTestRay->getClosestObjectIndex(objects);
         
-        float lightT = dot(normalize(shadowTestRay->getDirection()),
-                           lights.at(i)->getLocation() - shadowTestRay->getOrigin());
+        const float lightT = dot(normalize(shadowTestRay->getDirection()),
+                                 lights.at(i)->getLocation() - shadowTestRay->getOrigin());
         
         if (index == -1 || shadowTestRay->getIntersectionTime() > lightT) {
-            vec3 V = normalize(-ray->getDirection());
-            vec3 H = normalize(V + L);
-            float NdotH = dot(N, H);
-            float NdotV = dot(N, V);
-            float VdotH = dot(V, H);
-            float NdotL = dot(N, L);
-            vec3 rd = kd;
+            const vec3 V = normalize(-ray->getDirection());
+            const vec3 H = normalize(V + L);
+            const float NdotH = dot(N, H);
+            const float NdotV = dot(N, V);
+            const float VdotH = dot(V, H);
+            const float NdotL = dot(N, L);
+            const vec3 rd = kd;
             
-            float exponent = (pow(NdotH, 2) - 1) / (pow(alpha, 2) * pow(NdotH, 2));
-            float D = (1/(M_PI * pow(alpha, 2))) * (exp(exponent)/pow(NdotH, 4));
+            const float exponent = (pow(NdotH, 2) - 1) / (pow(alpha, 2) * pow(NdotH, 2));
+            const float D = (1/(M_PI * pow(alpha, 2))) * (exp(exponent)/pow(NdotH, 4));
             
             float G = std::min(1.0f, (2 * NdotH * NdotV)/VdotH);
             G = std::min(G, (2 * NdotH * NdotL)/VdotH);
             
-            float F0 = pow(ior-1, 2)/pow(ior+1, 2);
-            float F = F0 + (1-F0) * pow(1 - VdotH, 5);
+            const float F0 = pow(ior - 1, 2)/pow(ior + 1, 2);
+            const float F = F0 + (1 - F0) * pow(1 - VdotH, 5);
             
-            float rs = (D * G * F)/(4 * NdotL * NdotV);
+            const float rs = (D * G * F)/(4 * NdotL * NdotV);
             
-            colorSum += lights.at(i)->getColor() * NdotL * ((1-metallic) * rd +
-                                                            metallic * rs);
+            colorSum += lights.at(i)->getColor() * NdotL * ((1 - metallic) * rd + metallic * rs);
         }
     }
     
@@ -150,9 +147,4 @@ void Sphere::printObjectInfo()
     printf("  - Roughness: %.4g\n", roughness);
     printf("  - Metallic: %.4g\n", metallic);
     printf("  - Ior: %.4g\n", ior);
-}
-
-string Sphere::getObjectType()
-{
-    return "Sphere";
 }

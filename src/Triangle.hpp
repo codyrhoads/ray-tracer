@@ -1,23 +1,24 @@
 //
-//  Plane.hpp
-//  ray-tracer
+//  Triangle.hpp
+//  raytrace
 //
-//  Created by Cody Rhoads on 4/4/17.
+//  Created by Cody Rhoads on 5/9/17.
 //
 //
 
-#ifndef Plane_hpp
-#define Plane_hpp
+#ifndef Triangle_hpp
+#define Triangle_hpp
 
 #include "SceneObject.hpp"
 
-class Plane : public SceneObject
+class Triangle : public SceneObject
 {
 public:
-    Plane();
-    Plane(const glm::vec3 &normal, const float distance, const glm::vec3 &color,
-          const float ambient, const float diffuse, const float specular,
-          const float roughness, const float metallic, const float ior);
+    Triangle();
+    Triangle(const glm::vec3 &v0, const glm::vec3 &v1, const glm::vec3 &v2,
+             const glm::vec3 &color, const float ambient, const float diffuse,
+             const float specular, const float roughness, const float metallic,
+             const float ior);
     
     bool testIntersection(const std::shared_ptr<Ray> &ray, float &t);
     glm::vec3 getColorBlinnPhong(const std::vector<std::shared_ptr<SceneObject>> &objects,
@@ -27,16 +28,13 @@ public:
                                    const std::vector<std::shared_ptr<LightSource>> &lights,
                                    const std::shared_ptr<Ray> &ray);
     
-    glm::vec3 getNormal() const {return normal;}
-    float getDistance() const {return distance;}
-    
     void printObjectInfo();
-    std::string getObjectType() {return "Plane";}
+    std::string getObjectType() {return "Triangle";}
+    
 private:
-    glm::vec3 normal;
-    float distance;
+    glm::vec3 v0, v1, v2;
     
     const float epsilon = 0.0001;
 };
 
-#endif /* Plane_hpp */
+#endif /* Triangle_hpp */

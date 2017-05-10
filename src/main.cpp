@@ -15,7 +15,8 @@ enum Command {
     RENDER, SCENEINFO, PIXELRAY, FIRSTHIT, PIXELCOLOR
 };
 
-int main(int argc, char **argv) {
+int main(int argc, char **argv)
+{
     FileParser parser = FileParser();
     ifstream file;
     string line;
@@ -124,12 +125,10 @@ int main(int argc, char **argv) {
         // If there are 7 or less arguments, then it is Blinn-Phong. Otherwise,
         // Cook-Torrance.
         if (argc < 8) {
-            camera->pixelColor(objects, lights, atof(argv[5]), atof(argv[6]),
-                               "Blinn-Phong");
+            camera->pixelColor(objects, lights, atof(argv[5]), atof(argv[6]), "Blinn-Phong");
         }
         else {
-            camera->pixelColor(objects, lights, atof(argv[5]), atof(argv[6]),
-                               "Alternate");
+            camera->pixelColor(objects, lights, atof(argv[5]), atof(argv[6]), "Alternate");
         }
     }
     

@@ -40,7 +40,7 @@ public:
     float getRoughness() const {return roughness;}
     
     virtual void printObjectInfo();
-    virtual std::string getObjectType();
+    virtual std::string getObjectType() {return "NULL";}
 protected:
     glm::vec3 color;
     float ambient, diffuse, specular, roughness, metallic, ior;

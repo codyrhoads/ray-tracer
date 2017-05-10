@@ -33,6 +33,7 @@ private:
     void parseLight(std::ifstream &file);
     void parseSphere(std::ifstream &file);
     void parsePlane(std::ifstream &file);
+    void parseTriangle(std::ifstream &file);
     
     std::shared_ptr<Camera> camera;
     std::vector<std::shared_ptr<LightSource>> lights;

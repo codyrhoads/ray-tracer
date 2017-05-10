@@ -47,7 +47,7 @@ void Camera::renderBlinnPhong(const vector<shared_ptr<SceneObject>> &objects,
                               const vector<shared_ptr<LightSource>> &lights)
 {
     int index, rgbIndex = 0;
-    unsigned char *rgbData = new unsigned char[imageWidth*imageHeight*3];
+    unsigned char *rgbData = new unsigned char[imageWidth * imageHeight * 3];
     
     for (int j = imageHeight - 1; j >= 0; j--) {
         for (int i = 0; i < imageWidth; i++) {
@@ -55,9 +55,7 @@ void Camera::renderBlinnPhong(const vector<shared_ptr<SceneObject>> &objects,
             index = currRay->getClosestObjectIndex(objects);
             
             if (index != -1) {
-                vec3 color = objects.at(index)->getColorBlinnPhong(objects,
-                                                                   lights,
-                                                                   currRay);
+                vec3 color = objects.at(index)->getColorBlinnPhong(objects, lights, currRay);
                 // set pixel color to object color
                 rgbData[rgbIndex++] = round(std::min(color.r, 1.0f) * 255);
                 rgbData[rgbIndex++] = round(std::min(color.g, 1.0f) * 255);

@@ -33,7 +33,7 @@ distance(distance)
 
 bool Plane::testIntersection(const shared_ptr<Ray> &ray, float &t)
 {
-    float denominator = dot(ray->getDirection(), normal);
+    const float denominator = dot(ray->getDirection(), normal);
     
     if (denominator < epsilon && denominator > -epsilon) {
         return false;
@@ -55,23 +55,22 @@ vec3 Plane::getColorBlinnPhong(const vector<shared_ptr<SceneObject>> &objects,
                                const shared_ptr<Ray> &ray)
 {
     vec3 colorSum = vec3(0, 0, 0);
-    vec3 ka = color * ambient;
-    vec3 kd = color * diffuse;
-    vec3 N = normal;
+    const vec3 ka = color * ambient;
+    const vec3 kd = color * diffuse;
+    const vec3 N = normal;
     
     for (unsigned int i = 0; i < lights.size(); i++) {
         int index = -1;
-        vec3 L = normalize(lights.at(i)->getLocation() -
-                           ray->getIntersectionPoint());
-        shared_ptr<Ray> shadowTestRay = make_shared<Ray>(ray->getIntersectionPoint() + epsilon*L,
-                                                         L);
+        const vec3 L = normalize(lights.at(i)->getLocation() - ray->getIntersectionPoint());
+        
+        shared_ptr<Ray> shadowTestRay = make_shared<Ray>(ray->getIntersectionPoint() + epsilon * L, L);
         index = shadowTestRay->getClosestObjectIndex(objects);
         
-        float lightT = dot(normalize(shadowTestRay->getDirection()),
-                           lights.at(i)->getLocation() - shadowTestRay->getOrigin());
+        const float lightT = dot(normalize(shadowTestRay->getDirection()),
+                                 lights.at(i)->getLocation() - shadowTestRay->getOrigin());
         
         if (index == -1 || shadowTestRay->getIntersectionTime() > lightT) {
-            vec3 rd = kd * std::max(0.0f, dot(N, L));
+            const vec3 rd = kd * std::max(0.0f, dot(N, L));
             colorSum += lights.at(i)->getColor() * rd;
         }
     }
@@ -84,44 +83,42 @@ vec3 Plane::getColorCookTorrance(const vector<shared_ptr<SceneObject>> &objects,
                                  const shared_ptr<Ray> &ray)
 {
     vec3 colorSum = vec3(0, 0, 0);
-    vec3 ka = color * ambient;
-    vec3 kd = color * diffuse;
-    vec3 N = normal;
-    float alpha = pow(roughness, 2);
+    const vec3 ka = color * ambient;
+    const vec3 kd = color * diffuse;
+    const vec3 N = normal;
+    const float alpha = pow(roughness, 2);
     
     for (unsigned int i = 0; i < lights.size(); i++) {
         int index = -1;
-        vec3 L = normalize(lights.at(i)->getLocation() -
-                           ray->getIntersectionPoint());
-        shared_ptr<Ray> shadowTestRay = make_shared<Ray>(ray->getIntersectionPoint() + epsilon*L,
-                                                         L);
+        const vec3 L = normalize(lights.at(i)->getLocation() -
+                                 ray->getIntersectionPoint());
+        shared_ptr<Ray> shadowTestRay = make_shared<Ray>(ray->getIntersectionPoint() + epsilon * L, L);
         index = shadowTestRay->getClosestObjectIndex(objects);
         
-        float lightT = dot(normalize(shadowTestRay->getDirection()),
-                           lights.at(i)->getLocation() - shadowTestRay->getOrigin());
+        const float lightT = dot(normalize(shadowTestRay->getDirection()),
+                                 lights.at(i)->getLocation() - shadowTestRay->getOrigin());
         
         if (index == -1 || shadowTestRay->getIntersectionTime() > lightT) {
-            vec3 V = normalize(-ray->getDirection());
-            vec3 H = normalize(V + L);
-            float NdotH = dot(N, H);
-            float NdotV = dot(N, V);
-            float VdotH = dot(V, H);
-            float NdotL = dot(N, L);
-            vec3 rd = kd;
+            const vec3 V = normalize(-ray->getDirection());
+            const vec3 H = normalize(V + L);
+            const float NdotH = dot(N, H);
+            const float NdotV = dot(N, V);
+            const float VdotH = dot(V, H);
+            const float NdotL = dot(N, L);
+            const vec3 rd = kd;
             
-            float exponent = (pow(NdotH, 2) - 1) / (pow(alpha, 2) * pow(NdotH, 2));
-            float D = (1/(M_PI * pow(alpha, 2))) * (exp(exponent)/pow(NdotH, 4));
+            const float exponent = (pow(NdotH, 2) - 1) / (pow(alpha, 2) * pow(NdotH, 2));
+            const float D = (1/(M_PI * pow(alpha, 2))) * (exp(exponent)/pow(NdotH, 4));
             
             float G = std::min(1.0f, (2 * NdotH * NdotV)/VdotH);
             G = std::min(G, (2 * NdotH * NdotL)/VdotH);
             
-            float F0 = pow(ior-1, 2)/pow(ior+1, 2);
-            float F = F0 + (1-F0) * pow(1 - VdotH, 5);
+            const float F0 = pow(ior - 1, 2)/pow(ior + 1, 2);
+            const float F = F0 + (1 - F0) * pow(1 - VdotH, 5);
             
-            float rs = (D * G * F)/(4 * NdotL * NdotV);
+            const float rs = (D * G * F)/(4 * NdotL * NdotV);
             
-            colorSum += lights.at(i)->getColor() * NdotL * ((1-metallic) * rd +
-                                                            metallic * rs);
+            colorSum += lights.at(i)->getColor() * NdotL * ((1 - metallic) * rd + metallic * rs);
         }
     }
     
@@ -134,9 +131,4 @@ void Plane::printObjectInfo()
     printf("- Normal: {%.4g %.4g %.4g}\n", normal.x, normal.y, normal.z);
     printf("- Distance: %.4g\n", distance);
     SceneObject::printObjectInfo();
-}
-
-string Plane::getObjectType()
-{
-    return "Plane";
 }

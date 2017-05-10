@@ -66,8 +66,3 @@ void SceneObject::printObjectInfo()
     printf("  - Ambient: %.4g\n", ambient);
     printf("  - Diffuse: %.4g\n", diffuse);
 }
-
-string SceneObject::getObjectType()
-{
-    return "NULL";
-}
