@@ -13,6 +13,7 @@
 #include <string>
 #include <vector>
 #include <fstream>
+#include <glm/gtc/type_ptr.hpp>
 
 class SceneObject;
 class Camera;
@@ -34,6 +35,11 @@ private:
     void parseSphere(std::ifstream &file);
     void parsePlane(std::ifstream &file);
     void parseTriangle(std::ifstream &file);
+    
+    void findAndSetSingleValueParameter(const std::string segment, float &parameter,
+                                        const std::string indicator, const size_t start);
+    size_t findAndSetVectorParameter(const std::string segment, glm::vec3 &parameter,
+                                     const std::string indicator, const size_t start);
     
     std::shared_ptr<Camera> camera;
     std::vector<std::shared_ptr<LightSource>> lights;

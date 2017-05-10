@@ -21,17 +21,15 @@ class SceneObject
 {
 public:
     SceneObject();
-    SceneObject(const glm::vec3 &color, const float ambient,
-                const float diffuse, const float specular,
-                const float roughness, const float metallic, const float ior);
+    SceneObject(const glm::vec3 &color, const float ambient, const float diffuse,
+                const float specular, const float reflection, const float roughness,
+                const float metallic, const float ior);
     
     virtual bool testIntersection(const std::shared_ptr<Ray> &ray, float &t);
-    virtual glm::vec3 getColorBlinnPhong(const std::vector<std::shared_ptr<SceneObject>> &objects,
-                                         const std::vector<std::shared_ptr<LightSource>> &lights,
-                                         const std::shared_ptr<Ray> &ray);
-    virtual glm::vec3 getColorCookTorrance(const std::vector<std::shared_ptr<SceneObject>> &objects,
-                                           const std::vector<std::shared_ptr<LightSource>> &lights,
-                                           const std::shared_ptr<Ray> &ray);
+    virtual glm::vec3 getShadedColor(const std::vector<std::shared_ptr<SceneObject>> &objects,
+                                     const std::vector<std::shared_ptr<LightSource>> &lights,
+                                     const std::shared_ptr<Ray> &ray, const int bouncesLeft,
+                                     const std::string &BRDF);
     
     glm::vec3 getColor() const {return color;}
     float getAmbient() const {return ambient;}
@@ -42,8 +40,19 @@ public:
     virtual void printObjectInfo();
     virtual std::string getObjectType() {return "NULL";}
 protected:
+    virtual glm::vec3 findLocalColorBlinnPhong(const std::vector<std::shared_ptr<SceneObject>> &objects,
+                                               const std::vector<std::shared_ptr<LightSource>> &lights,
+                                               const std::shared_ptr<Ray> &ray);
+    virtual glm::vec3 findLocalColorCookTorrance(const std::vector<std::shared_ptr<SceneObject>> &objects,
+                                                 const std::vector<std::shared_ptr<LightSource>> &lights,
+                                                 const std::shared_ptr<Ray> &ray);
+    virtual glm::vec3 findReflectedColor(const std::vector<std::shared_ptr<SceneObject>> &objects,
+                                         const std::vector<std::shared_ptr<LightSource>> &lights,
+                                         const std::shared_ptr<Ray> &ray, const int bouncesLeft,
+                                         const std::string &BRDF);
+    
     glm::vec3 color;
-    float ambient, diffuse, specular, roughness, metallic, ior;
+    float ambient, diffuse, specular, reflection, roughness, metallic, ior;
 };
 
 #endif /* SceneObject_hpp */

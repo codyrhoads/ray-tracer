@@ -30,7 +30,7 @@ t(0)
     
 }
 
-int Ray::getClosestObjectIndex(const vector<shared_ptr<SceneObject>> &objects)
+int Ray::findClosestObjectIndex(const vector<shared_ptr<SceneObject>> &objects)
 {
     int index = -1;
     

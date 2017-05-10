@@ -21,7 +21,7 @@ public:
     Ray();
     Ray(const glm::vec3 &origin, const glm::vec3 &dir);
     
-    int getClosestObjectIndex(const std::vector<std::shared_ptr<SceneObject>> &objects);
+    int findClosestObjectIndex(const std::vector<std::shared_ptr<SceneObject>> &objects);
     
     void setIntersectionTime(const float newT) {t = newT;}
     

@@ -24,9 +24,9 @@ v2(vec3(0, 0, 0))
 
 Triangle::Triangle(const vec3 &v0, const vec3 &v1, const vec3 &v2,
                    const vec3 &color, const float ambient, const float diffuse,
-                   const float specular, const float roughness, const float metallic,
-                   const float ior) :
-SceneObject(color, ambient, diffuse, specular, roughness, metallic, ior),
+                   const float specular, const float reflection,
+                   const float roughness, const float metallic, const float ior) :
+SceneObject(color, ambient, diffuse, specular, reflection, roughness, metallic, ior),
 v0(v0),
 v1(v1),
 v2(v2)
@@ -101,9 +101,9 @@ bool Triangle::testIntersection(const shared_ptr<Ray> &ray, float &t)
     return true;
 }
 
-vec3 Triangle::getColorBlinnPhong(const vector<shared_ptr<SceneObject>> &objects,
-                                  const vector<shared_ptr<LightSource>> &lights,
-                                  const shared_ptr<Ray> &ray)
+vec3 Triangle::findLocalColorBlinnPhong(const vector<shared_ptr<SceneObject>> &objects,
+                                        const vector<shared_ptr<LightSource>> &lights,
+                                        const shared_ptr<Ray> &ray)
 {
     vec3 colorSum = vec3(0, 0, 0);
     const vec3 ka = color * ambient;
@@ -115,7 +115,7 @@ vec3 Triangle::getColorBlinnPhong(const vector<shared_ptr<SceneObject>> &objects
         const vec3 L = normalize(lights.at(i)->getLocation() - ray->getIntersectionPoint());
         
         shared_ptr<Ray> shadowTestRay = make_shared<Ray>(ray->getIntersectionPoint() + epsilon * L, L);
-        index = shadowTestRay->getClosestObjectIndex(objects);
+        index = shadowTestRay->findClosestObjectIndex(objects);
         
         const float lightT = dot(normalize(shadowTestRay->getDirection()),
                                  lights.at(i)->getLocation() - shadowTestRay->getOrigin());
@@ -129,9 +129,9 @@ vec3 Triangle::getColorBlinnPhong(const vector<shared_ptr<SceneObject>> &objects
     return ka + colorSum;
 }
 
-vec3 Triangle::getColorCookTorrance(const vector<shared_ptr<SceneObject>> &objects,
-                                    const vector<shared_ptr<LightSource>> &lights,
-                                    const shared_ptr<Ray> &ray)
+vec3 Triangle::findLocalColorCookTorrance(const vector<shared_ptr<SceneObject>> &objects,
+                                          const vector<shared_ptr<LightSource>> &lights,
+                                          const shared_ptr<Ray> &ray)
 {
     vec3 colorSum = vec3(0, 0, 0);
     const vec3 ka = color * ambient;
@@ -144,7 +144,7 @@ vec3 Triangle::getColorCookTorrance(const vector<shared_ptr<SceneObject>> &objec
         const vec3 L = normalize(lights.at(i)->getLocation() -
                                  ray->getIntersectionPoint());
         shared_ptr<Ray> shadowTestRay = make_shared<Ray>(ray->getIntersectionPoint() + epsilon * L, L);
-        index = shadowTestRay->getClosestObjectIndex(objects);
+        index = shadowTestRay->findClosestObjectIndex(objects);
         
         const float lightT = dot(normalize(shadowTestRay->getDirection()),
                                  lights.at(i)->getLocation() - shadowTestRay->getOrigin());
@@ -174,6 +174,29 @@ vec3 Triangle::getColorCookTorrance(const vector<shared_ptr<SceneObject>> &objec
     }
     
     return ka + colorSum;
+}
+
+vec3 Triangle::findReflectedColor(const vector<shared_ptr<SceneObject>> &objects,
+                                  const vector<shared_ptr<LightSource>> &lights,
+                                  const shared_ptr<Ray> &ray, const int bouncesLeft,
+                                  const string &BRDF)
+{
+    vec3 reflectedColor = vec3(0, 0, 0);
+    int index = -1;
+    const vec3 n = normalize(cross(v1 - v0, v2 - v0));
+    const vec3 d = ray->getDirection();
+    const vec3 reflectedDirection = normalize(d - 2 * (dot(d, n)) * n);
+    
+    shared_ptr<Ray> reflectedRay = make_shared<Ray>(ray->getIntersectionPoint() + reflectedDirection * epsilon,
+                                                    reflectedDirection);
+    index = reflectedRay->findClosestObjectIndex(objects);
+    
+    if (index > -1) {
+        reflectedColor = objects.at(index)->getShadedColor(objects, lights, reflectedRay,
+                                                           bouncesLeft, BRDF);
+    }
+    
+    return reflectedColor;
 }
 
 void Triangle::printObjectInfo()

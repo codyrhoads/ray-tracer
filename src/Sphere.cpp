@@ -23,8 +23,9 @@ radius(0)
 
 Sphere::Sphere(const vec3 &center, const float radius, const vec3 &color,
                const float ambient, const float diffuse, const float specular,
-               const float roughness, const float metallic, const float ior) :
-SceneObject(color, ambient, diffuse, specular, roughness, metallic, ior),
+               const float reflection, const float roughness, const float metallic,
+               const float ior) :
+SceneObject(color, ambient, diffuse, specular, reflection, roughness, metallic, ior),
 center(center),
 radius(radius)
 {
@@ -55,9 +56,9 @@ bool Sphere::testIntersection(const shared_ptr<Ray> &ray, float &t)
     return false;
 }
 
-vec3 Sphere::getColorBlinnPhong(const vector<shared_ptr<SceneObject>> &objects,
-                                const vector<shared_ptr<LightSource>> &lights,
-                                const shared_ptr<Ray> &ray)
+vec3 Sphere::findLocalColorBlinnPhong(const vector<shared_ptr<SceneObject>> &objects,
+                                      const vector<shared_ptr<LightSource>> &lights,
+                                      const shared_ptr<Ray> &ray)
 {
     vec3 colorSum = vec3(0, 0, 0);
     const vec3 ka = color * ambient;
@@ -71,7 +72,7 @@ vec3 Sphere::getColorBlinnPhong(const vector<shared_ptr<SceneObject>> &objects,
         const vec3 L = normalize(lights.at(i)->getLocation() - ray->getIntersectionPoint());
         
         shared_ptr<Ray> shadowTestRay = make_shared<Ray>(ray->getIntersectionPoint() + epsilon * L, L);
-        index = shadowTestRay->getClosestObjectIndex(objects);
+        index = shadowTestRay->findClosestObjectIndex(objects);
         
         const float lightT = dot(normalize(shadowTestRay->getDirection()),
                                  lights.at(i)->getLocation() - shadowTestRay->getOrigin());
@@ -90,9 +91,9 @@ vec3 Sphere::getColorBlinnPhong(const vector<shared_ptr<SceneObject>> &objects,
     return ka + colorSum;
 }
 
-vec3 Sphere::getColorCookTorrance(const vector<shared_ptr<SceneObject>> &objects,
-                                  const vector<shared_ptr<LightSource>> &lights,
-                                  const shared_ptr<Ray> &ray)
+vec3 Sphere::findLocalColorCookTorrance(const vector<shared_ptr<SceneObject>> &objects,
+                                        const vector<shared_ptr<LightSource>> &lights,
+                                        const shared_ptr<Ray> &ray)
 {
     vec3 colorSum = vec3(0, 0, 0);
     const vec3 ka = color * ambient;
@@ -105,7 +106,7 @@ vec3 Sphere::getColorCookTorrance(const vector<shared_ptr<SceneObject>> &objects
         const vec3 L = normalize(lights.at(i)->getLocation() - ray->getIntersectionPoint());
         
         shared_ptr<Ray> shadowTestRay = make_shared<Ray>(ray->getIntersectionPoint() + epsilon * L, L);
-        index = shadowTestRay->getClosestObjectIndex(objects);
+        index = shadowTestRay->findClosestObjectIndex(objects);
         
         const float lightT = dot(normalize(shadowTestRay->getDirection()),
                                  lights.at(i)->getLocation() - shadowTestRay->getOrigin());
@@ -135,6 +136,29 @@ vec3 Sphere::getColorCookTorrance(const vector<shared_ptr<SceneObject>> &objects
     }
     
     return ka + colorSum;
+}
+
+vec3 Sphere::findReflectedColor(const vector<shared_ptr<SceneObject>> &objects,
+                                const vector<shared_ptr<LightSource>> &lights,
+                                const shared_ptr<Ray> &ray, const int bouncesLeft,
+                                const string &BRDF)
+{
+    vec3 reflectedColor = vec3(0, 0, 0);
+    int index = -1;
+    const vec3 n = normalize(ray->getIntersectionPoint() - center);
+    const vec3 d = ray->getDirection();
+    const vec3 reflectedDirection = normalize(d - 2 * (dot(d, n)) * n);
+    
+    shared_ptr<Ray> reflectedRay = make_shared<Ray>(ray->getIntersectionPoint() + reflectedDirection * epsilon,
+                                                    reflectedDirection);
+    index = reflectedRay->findClosestObjectIndex(objects);
+    
+    if (index > -1) {
+        reflectedColor = objects.at(index)->getShadedColor(objects, lights, reflectedRay,
+                                                           bouncesLeft, BRDF);
+    }
+    
+    return reflectedColor;
 }
 
 void Sphere::printObjectInfo()

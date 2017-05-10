@@ -27,17 +27,20 @@ public:
     
     void setImageSize(const int width, const int height);
     
-    void renderBlinnPhong(const std::vector<std::shared_ptr<SceneObject>> &objects,
-                          const std::vector<std::shared_ptr<LightSource>> &lights);
-    void renderCookTorrance(const std::vector<std::shared_ptr<SceneObject>> &objects,
-                            const std::vector<std::shared_ptr<LightSource>> &lights);
+    void render(const std::vector<std::shared_ptr<SceneObject>> &objects,
+                const std::vector<std::shared_ptr<LightSource>> &lights,
+                const std::string &BRDF);
     void pixelRay(const float pixelX, const float pixelY);
     void firstHit(const std::vector<std::shared_ptr<SceneObject>> &objects,
                   const float pixelX, const float pixelY);
     void pixelColor(const std::vector<std::shared_ptr<SceneObject>> &objects,
                     const std::vector<std::shared_ptr<LightSource>> &lights,
                     const float pixelX, const float pixelY,
-                    const std::string BRDF);
+                    const std::string &BRDF);
+    void pixelTrace(const std::vector<std::shared_ptr<SceneObject>> &objects,
+                    const std::vector<std::shared_ptr<LightSource>> &lights,
+                    const float pixelX, const float pixelY,
+                    const std::string &BRDF);
     
     glm::vec3 getLocation() const {return location;}
     glm::vec3 getUp() const {return up;}

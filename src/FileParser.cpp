@@ -80,7 +80,6 @@ void FileParser::parseCamera(ifstream &file)
     vec3 up = vec3(0, 0, 0);
     vec3 right = vec3(0, 0, 0);
     vec3 lookAt = vec3(0, 0, 0);
-    size_t found;
     
     // A '}' marks the end of a section. The camera doesn't have any subsections
     // that use curly brackets, so we can assume that the '}' is the end of the
@@ -92,101 +91,10 @@ void FileParser::parseCamera(ifstream &file)
     // Remove all newlines from the string.
     segment.erase(remove(segment.begin(), segment.end(), '\n'), segment.end());
     
-    found = segment.find("location");
-    if (found != string::npos) {
-        string temp;
-        int end;
-        
-        // Go to beginning of x value for location.
-        found += sizeof("location");
-        end = (int)segment.find(",", found);
-        temp = segment.substr(found, end - found);
-        location.x = atof(temp.c_str());
-        
-        // Go to beginning of y value for location.
-        found = end + 1;
-        end = (int)segment.find(",", found);
-        temp = segment.substr(found, end - found);
-        location.y = atof(temp.c_str());
-        
-        // Go to beginning of y value for location.
-        found = end + 1;
-        end = (int)segment.find(">", found);
-        temp = segment.substr(found, end - found);
-        location.z = atof(temp.c_str());
-    }
-    
-    found = segment.find("up");
-    if (found != string::npos) {
-        string temp;
-        int end;
-        
-        // Go to beginning of x value for up.
-        found += sizeof("up");
-        end = (int)segment.find(",", found);
-        temp = segment.substr(found, end - found);
-        up.x = atof(temp.c_str());
-        
-        // Go to beginning of y value for up.
-        found = end + 1;
-        end = (int)segment.find(",", found);
-        temp = segment.substr(found, end - found);
-        up.y = atof(temp.c_str());
-        
-        // Go to beginning of y value for up.
-        found = end + 1;
-        end = (int)segment.find(">", found);
-        temp = segment.substr(found, end - found);
-        up.z = atof(temp.c_str());
-    }
-    
-    found = segment.find("right");
-    if (found != string::npos) {
-        string temp;
-        int end;
-        
-        // Go to beginning of x value for right.
-        found += sizeof("right");
-        end = (int)segment.find(",", found);
-        temp = segment.substr(found, end - found);
-        right.x = atof(temp.c_str());
-        
-        // Go to beginning of y value for right.
-        found = end + 1;
-        end = (int)segment.find(",", found);
-        temp = segment.substr(found, end - found);
-        right.y = atof(temp.c_str());
-        
-        // Go to beginning of y value for right.
-        found = end + 1;
-        end = (int)segment.find(">", found);
-        temp = segment.substr(found, end - found);
-        right.z = atof(temp.c_str());
-    }
-    
-    found = segment.find("look_at");
-    if (found != string::npos) {
-        string temp;
-        int end;
-        
-        // Go to beginning of x value for lookAt.
-        found += sizeof("look_at");
-        end = (int)segment.find(",", found);
-        temp = segment.substr(found, end - found);
-        lookAt.x = atof(temp.c_str());
-        
-        // Go to beginning of y value for lookAt.
-        found = end + 1;
-        end = (int)segment.find(",", found);
-        temp = segment.substr(found, end - found);
-        lookAt.y = atof(temp.c_str());
-        
-        // Go to beginning of y value for lookAt.
-        found = end + 1;
-        end = (int)segment.find(">", found);
-        temp = segment.substr(found, end - found);
-        lookAt.z = atof(temp.c_str());
-    }
+    findAndSetVectorParameter(segment, location, "location<", 0);
+    findAndSetVectorParameter(segment, up, "up<", 0);
+    findAndSetVectorParameter(segment, right, "right<", 0);
+    findAndSetVectorParameter(segment, lookAt, "look_at<", 0);
     
     camera = make_shared<Camera>(location, up, right, lookAt);
 }
@@ -194,7 +102,6 @@ void FileParser::parseCamera(ifstream &file)
 void FileParser::parseLight(ifstream &file)
 {
     vec3 location = vec3(0, 0, 0), color = vec3(0, 0, 0);
-    size_t found, end;
     string segment, temp;
     
     // A '}' marks the end of a section. The light source doesn't have any
@@ -208,47 +115,8 @@ void FileParser::parseLight(ifstream &file)
     // Remove all newlines from the string.
     segment.erase(remove(segment.begin(), segment.end(), '\n'), segment.end());
     
-    found = segment.find("<");
-    if (found != string::npos) {
-        // Go to beginning of x value for location.
-        found += sizeof("<") - 1;
-        end = segment.find(",", found);
-        temp = segment.substr(found, end - found);
-        location.x = atof(temp.c_str());
-        
-        // Go to beginning of y value for location.
-        found = end + 1;
-        end = segment.find(",", found);
-        temp = segment.substr(found, end - found);
-        location.y = atof(temp.c_str());
-        
-        // Go to beginning of y value for location.
-        found = end + 1;
-        end = segment.find(">", found);
-        temp = segment.substr(found, end - found);
-        location.z = atof(temp.c_str());
-    }
-    
-    found = segment.find("colorrgb");
-    if (found != string::npos) {
-        // Go to beginning of r value for color.
-        found += sizeof("colorrgb");
-        end = segment.find(",", found);
-        temp = segment.substr(found, end - found);
-        color.x = atof(temp.c_str());
-        
-        // Go to beginning of g value for color.
-        found = end + 1;
-        end = segment.find(",", found);
-        temp = segment.substr(found, end - found);
-        color.y = atof(temp.c_str());
-        
-        // Go to beginning of b value for color.
-        found = end + 1;
-        end = segment.find(">", found);
-        temp = segment.substr(found, end - found);
-        color.z = atof(temp.c_str());
-    }
+    findAndSetVectorParameter(segment, location, "<", 0);
+    findAndSetVectorParameter(segment, color, "colorrgb<", 0);
     
     shared_ptr<LightSource> ls = make_shared<LightSource>(location, color);
     lights.push_back(ls);
@@ -258,9 +126,9 @@ void FileParser::parseSphere(ifstream &file)
 {
     vec3 center = vec3(0, 0, 0);
     vec3 color = vec3(0, 0, 0);
-    float radius = 0, ambient = 0, diffuse = 0, specular = 0, roughness = 0.3;
-    float metallic = 0.1, ior = 1.6;
-    size_t found = 0, end = 0;
+    float radius = 0, ambient = 0, diffuse = 0, specular = 0, reflection = 0;
+    float roughness = 0.3, metallic = 0.1, ior = 1.6;
+    size_t newStart = 0;
     string segment = "", temp;
     
     // Since there are subsections denoted with curly braces, we have to search
@@ -279,114 +147,21 @@ void FileParser::parseSphere(ifstream &file)
     // Remove all newlines from the string.
     segment.erase(remove(segment.begin(), segment.end(), '\n'), segment.end());
     
-    found = segment.find("<");
-    if (found != string::npos) {
-        // Go to beginning of x value for center.
-        found += sizeof("<") - 1;
-        end = segment.find(",", found);
-        temp = segment.substr(found, end - found);
-        center.x = atof(temp.c_str());
-        
-        // Go to beginning of y value for center.
-        found = end + 1;
-        end = segment.find(",", found);
-        temp = segment.substr(found, end - found);
-        center.y = atof(temp.c_str());
-        
-        // Go to beginning of y value for center.
-        found = end + 1;
-        end = segment.find(">", found);
-        temp = segment.substr(found, end - found);
-        center.z = atof(temp.c_str());
-    }
-    
-    found = segment.find(",", end);
-    if (found != string::npos) {
-        // Go to beginning of radius.
-        found += sizeof(",") - 1;
-        end = segment.find_first_not_of("0123456789.", found);
-        temp = segment.substr(found, end - found);
-        radius = atof(temp.c_str());
-    }
-    
-    found = segment.find("colorrgb");
-    if (found != string::npos) {
-        // Go to beginning of r value for color.
-        found += sizeof("colorrgb");
-        end = segment.find(",", found);
-        temp = segment.substr(found, end - found);
-        color.x = atof(temp.c_str());
-        
-        // Go to beginning of g value for color.
-        found = end + 1;
-        end = segment.find(",", found);
-        temp = segment.substr(found, end - found);
-        color.y = atof(temp.c_str());
-        
-        // Go to beginning of b value for color.
-        found = end + 1;
-        end = segment.find(">", found);
-        temp = segment.substr(found, end - found);
-        color.z = atof(temp.c_str());
-    }
-    
-    found = segment.find("ambient");
-    if (found != string::npos) {
-        // Go to beginning of ambient factor.
-        found += sizeof("ambient") - 1;
-        end = segment.find_first_not_of("0123456789.", found);
-        temp = segment.substr(found, end-found);
-        ambient = atof(temp.c_str());
-    }
-    
-    found = segment.find("diffuse");
-    if (found != string::npos) {
-        // Go to beginning of diffuse factor.
-        found += sizeof("diffuse") - 1;
-        end = segment.find_first_not_of("0123456789.", found);
-        temp = segment.substr(found, end - found);
-        diffuse = atof(temp.c_str());
-    }
-    
-    found = segment.find("specular");
-    if (found != string::npos) {
-        // Go to beginning of specular factor.
-        found += sizeof("specular") - 1;
-        end = segment.find_first_not_of("0123456789.", found);
-        temp = segment.substr(found, end - found);
-        specular = atof(temp.c_str());
-    }
-    
-    found = segment.find("roughness");
-    if (found != string::npos) {
-        // Go to beginning of roughness factor.
-        found += sizeof("roughness") - 1;
-        end = segment.find_first_not_of("0123456789.", found);
-        temp = segment.substr(found, end - found);
-        roughness = atof(temp.c_str());
-    }
-    
-    found = segment.find("metallic");
-    if (found != string::npos) {
-        // Go to beginning of metallic factor.
-        found += sizeof("metallic") - 1;
-        end = segment.find_first_not_of("0123456789.", found);
-        temp = segment.substr(found, end - found);
-        metallic = atof(temp.c_str());
-    }
-    
-    found = segment.find("ior");
-    if (found != string::npos) {
-        // Go to beginning of ior factor.
-        found += sizeof("ior") - 1;
-        end = segment.find_first_not_of("0123456789.", found);
-        temp = segment.substr(found, end - found);
-        ior = atof(temp.c_str());
-    }
+    newStart = findAndSetVectorParameter(segment, center, "<", 0);
+    findAndSetSingleValueParameter(segment, radius, ",", newStart);
+    findAndSetVectorParameter(segment, color, "colorrgb<", 0);
+    findAndSetSingleValueParameter(segment, ambient, "ambient", 0);
+    findAndSetSingleValueParameter(segment, diffuse, "diffuse", 0);
+    findAndSetSingleValueParameter(segment, specular, "specular", 0);
+    findAndSetSingleValueParameter(segment, reflection, "reflection", 0);
+    findAndSetSingleValueParameter(segment, roughness, "roughness", 0);
+    findAndSetSingleValueParameter(segment, metallic, "metallic", 0);
+    findAndSetSingleValueParameter(segment, ior, "ior", 0);
     
     shared_ptr<Sphere> sphere = make_shared<Sphere>(center, radius, color,
                                                     ambient, diffuse, specular,
-                                                    roughness, metallic, ior);
+                                                    reflection, roughness, metallic,
+                                                    ior);
     objects.push_back(sphere);
 }
 
@@ -394,9 +169,10 @@ void FileParser::parsePlane(ifstream &file)
 {
     vec3 normal = vec3(0, 0, 0);
     vec3 color = vec3(0, 0, 0);
-    int distance = 0;
-    float ambient = 0, diffuse = 0;
-    size_t found = 0, end = 0;
+    float distance = 0;
+    float ambient = 0, diffuse = 0, specular = 0, reflection = 0;
+    float roughness = 0.3, metallic = 0.1, ior = 1.6;
+    size_t newStart = 0;
     string segment = "", temp;
     
     // Since there are subsections denoted with curly braces, we have to search
@@ -415,78 +191,21 @@ void FileParser::parsePlane(ifstream &file)
     // Remove all newlines from the string.
     segment.erase(remove(segment.begin(), segment.end(), '\n'), segment.end());
     
-    found = segment.find("<");
-    if (found != string::npos) {
-        // Go to beginning of x value for normal.
-        found += sizeof("<") - 1;
-        end = segment.find(",", found);
-        temp = segment.substr(found, end - found);
-        normal.x = atof(temp.c_str());
-        
-        // Go to beginning of y value for normal.
-        found = end + 1;
-        end = segment.find(",", found);
-        temp = segment.substr(found, end - found);
-        normal.y = atof(temp.c_str());
-        
-        // Go to beginning of y value for normal.
-        found = end + 1;
-        end = segment.find(">", found);
-        temp = segment.substr(found, end - found);
-        normal.z = atof(temp.c_str());
-    }
-    
-    found = segment.find(",", end);
-    if (found != string::npos) {
-        // Go to beginning of distance.
-        found += sizeof(",") - 1;
-        end = segment.find_first_not_of("0123456789-", found);
-        temp = segment.substr(found, end - found);
-        distance = atoi(temp.c_str());
-    }
-    
-    found = segment.find("colorrgb");
-    if (found != string::npos) {
-        // Go to beginning of r value for color.
-        found += sizeof("colorrgb");
-        end = segment.find(",", found);
-        temp = segment.substr(found, end - found);
-        color.x = atof(temp.c_str());
-        
-        // Go to beginning of g value for color.
-        found = end + 1;
-        end = segment.find(",", found);
-        temp = segment.substr(found, end - found);
-        color.y = atof(temp.c_str());
-        
-        // Go to beginning of b value for color.
-        found = end + 1;
-        end = segment.find(">", found);
-        temp = segment.substr(found, end - found);
-        color.z = atof(temp.c_str());
-    }
-    
-    found = segment.find("ambient");
-    if (found != string::npos) {
-        // Go to beginning of ambient factor.
-        found += sizeof("ambient") - 1;
-        end = segment.find_first_not_of("0123456789.", found);
-        temp = segment.substr(found, end - found);
-        ambient = atof(temp.c_str());
-    }
-    
-    found = segment.find("diffuse");
-    if (found != string::npos) {
-        // Go to beginning of diffuse factor.
-        found += sizeof("diffuse") - 1;
-        end = segment.find_first_not_of("0123456789.", found);
-        temp = segment.substr(found, end - found);
-        diffuse = atof(temp.c_str());
-    }
+    newStart = findAndSetVectorParameter(segment, normal, "<", 0);
+    findAndSetSingleValueParameter(segment, distance, ",", newStart);
+    findAndSetVectorParameter(segment, color, "colorrgb<", 0);
+    findAndSetSingleValueParameter(segment, ambient, "ambient", 0);
+    findAndSetSingleValueParameter(segment, diffuse, "diffuse", 0);
+    findAndSetSingleValueParameter(segment, specular, "specular", 0);
+    findAndSetSingleValueParameter(segment, reflection, "reflection", 0);
+    findAndSetSingleValueParameter(segment, roughness, "roughness", 0);
+    findAndSetSingleValueParameter(segment, metallic, "metallic", 0);
+    findAndSetSingleValueParameter(segment, ior, "ior", 0);
 
     shared_ptr<Plane> plane = make_shared<Plane>(normal, distance, color,
-                                                 ambient, diffuse, 0,
-                                                 0.3f, 0.1f, 1.6f);
+                                                 ambient, diffuse, specular,
+                                                 reflection, roughness, metallic,
+                                                 ior);
     objects.push_back(plane);
 }
 
@@ -496,8 +215,9 @@ void FileParser::parseTriangle(ifstream &file)
     vec3 v1 = vec3(0, 0, 0);
     vec3 v2 = vec3(0, 0, 0);
     vec3 color = vec3(0, 0, 0);
-    float ambient = 0, diffuse = 0;
-    size_t found = 0, end = 0;
+    float ambient = 0, diffuse = 0, specular = 0, reflection = 0;
+    float roughness = 0.3, metallic = 0.1, ior = 1.6;
+    size_t newStart = 0;
     string segment = "", temp;
     
     // Since there are subsections denoted with curly braces, we have to search
@@ -516,110 +236,67 @@ void FileParser::parseTriangle(ifstream &file)
     // Remove all newlines from the string.
     segment.erase(remove(segment.begin(), segment.end(), '\n'), segment.end());
     
-    found = segment.find("<");
-    if (found != string::npos) {
-        // Go to beginning of x value for v0.
-        found += sizeof("<") - 1;
-        end = segment.find(",", found);
-        temp = segment.substr(found, end - found);
-        v0.x = atof(temp.c_str());
-        
-        // Go to beginning of y value for v0.
-        found = end + 1;
-        end = segment.find(",", found);
-        temp = segment.substr(found, end - found);
-        v0.y = atof(temp.c_str());
-        
-        // Go to beginning of z value for v0.
-        found = end + 1;
-        end = segment.find(">", found);
-        temp = segment.substr(found, end - found);
-        v0.z = atof(temp.c_str());
-    }
-    
-    found = segment.find("<", end);
-    if (found != string::npos) {
-        // Go to beginning of x value for v1.
-        found += sizeof("<") - 1;
-        end = segment.find(",", found);
-        temp = segment.substr(found, end - found);
-        v1.x = atof(temp.c_str());
-        
-        // Go to beginning of y value for v1.
-        found = end + 1;
-        end = segment.find(",", found);
-        temp = segment.substr(found, end - found);
-        v1.y = atof(temp.c_str());
-        
-        // Go to beginning of z value for v1.
-        found = end + 1;
-        end = segment.find(">", found);
-        temp = segment.substr(found, end - found);
-        v1.z = atof(temp.c_str());
-    }
-    
-    found = segment.find("<", end);
-    if (found != string::npos) {
-        // Go to beginning of x value for v2.
-        found += sizeof("<") - 1;
-        end = segment.find(",", found);
-        temp = segment.substr(found, end - found);
-        v2.x = atof(temp.c_str());
-        
-        // Go to beginning of y value for v2.
-        found = end + 1;
-        end = segment.find(",", found);
-        temp = segment.substr(found, end - found);
-        v2.y = atof(temp.c_str());
-        
-        // Go to beginning of z value for v2.
-        found = end + 1;
-        end = segment.find(">", found);
-        temp = segment.substr(found, end - found);
-        v2.z = atof(temp.c_str());
-    }
-    
-    found = segment.find("colorrgb");
-    if (found != string::npos) {
-        // Go to beginning of r value for color.
-        found += sizeof("colorrgb");
-        end = segment.find(",", found);
-        temp = segment.substr(found, end-found);
-        color.x = atof(temp.c_str());
-        
-        // Go to beginning of g value for color.
-        found = end + 1;
-        end = segment.find(",", found);
-        temp = segment.substr(found, end-found);
-        color.y = atof(temp.c_str());
-        
-        // Go to beginning of b value for color.
-        found = end + 1;
-        end = segment.find(">", found);
-        temp = segment.substr(found, end-found);
-        color.z = atof(temp.c_str());
-    }
-    
-    found = segment.find("ambient");
-    if (found != string::npos) {
-        // Go to beginning of ambient factor.
-        found += sizeof("ambient") - 1;
-        end = segment.find_first_not_of("0123456789.", found);
-        temp = segment.substr(found, end-found);
-        ambient = atof(temp.c_str());
-    }
-    
-    found = segment.find("diffuse");
-    if (found != string::npos) {
-        // Go to beginning of diffuse factor.
-        found += sizeof("diffuse") - 1;
-        end = segment.find_first_not_of("0123456789.", found);
-        temp = segment.substr(found, end-found);
-        diffuse = atof(temp.c_str());
-    }
+    newStart = findAndSetVectorParameter(segment, v0, "<", 0);
+    newStart = findAndSetVectorParameter(segment, v1, "<", newStart);
+    findAndSetVectorParameter(segment, v2, "<", newStart);
+    findAndSetVectorParameter(segment, color, "colorrgb<", 0);
+    findAndSetSingleValueParameter(segment, ambient, "ambient", 0);
+    findAndSetSingleValueParameter(segment, diffuse, "diffuse", 0);
+    findAndSetSingleValueParameter(segment, specular, "specular", 0);
+    findAndSetSingleValueParameter(segment, reflection, "reflection", 0);
+    findAndSetSingleValueParameter(segment, roughness, "roughness", 0);
+    findAndSetSingleValueParameter(segment, metallic, "metallic", 0);
+    findAndSetSingleValueParameter(segment, ior, "ior", 0);
     
     shared_ptr<Triangle> triangle = make_shared<Triangle>(v0, v1, v2, color,
-                                                          ambient, diffuse, 0,
-                                                          0.3f, 0.1f, 1.6f);
+                                                          ambient, diffuse, specular,
+                                                          reflection, roughness,
+                                                          metallic, ior);
     objects.push_back(triangle);
+}
+
+void FileParser::findAndSetSingleValueParameter(const string segment, float &parameter,
+                                                const string indicator, const size_t start)
+{
+    size_t found = 0, end = 0;
+    string temp;
+    
+    found = segment.find(indicator, start);
+    if (found != string::npos) {
+        // Go to beginning of the value to be recorded.
+        found += indicator.length();
+        end = segment.find_first_not_of("0123456789.-", found);
+        temp = segment.substr(found, end - found);
+        parameter = atof(temp.c_str());
+    }
+}
+
+size_t FileParser::findAndSetVectorParameter(const string segment, vec3 &parameter,
+                                             const string indicator, const size_t start)
+{
+    size_t found = 0, end = 0;
+    string temp;
+    
+    found = segment.find(indicator, start);
+    if (found != string::npos) {
+        // Go to beginning of x value for parameter.
+        found += indicator.length();
+        end = segment.find(",", found);
+        temp = segment.substr(found, end - found);
+        parameter.x = atof(temp.c_str());
+        
+        // Go to beginning of y value for parameter.
+        found = end + 1;
+        end = segment.find(",", found);
+        temp = segment.substr(found, end - found);
+        parameter.y = atof(temp.c_str());
+        
+        // Go to beginning of z value for parameter.
+        found = end + 1;
+        end = segment.find(">", found);
+        temp = segment.substr(found, end - found);
+        parameter.z = atof(temp.c_str());
+    }
+    
+    return end;
 }

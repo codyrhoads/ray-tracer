@@ -12,7 +12,7 @@
 using namespace std;
 
 enum Command {
-    RENDER, SCENEINFO, PIXELRAY, FIRSTHIT, PIXELCOLOR
+    RENDER, SCENEINFO, PIXELRAY, FIRSTHIT, PIXELCOLOR, PIXELTRACE
 };
 
 int main(int argc, char **argv)
@@ -24,6 +24,7 @@ int main(int argc, char **argv)
     vector<shared_ptr<LightSource>> lights;
     vector<shared_ptr<SceneObject>> objects;
     Command command;
+    string BRDF = "Blinn-Phong";
     
     if (argc < 2) {
         printf("Need a command.\n");
@@ -35,6 +36,9 @@ int main(int argc, char **argv)
         if (argc < 5) {
             printf("Not enough arguments for render.\n");
             return 0;
+        }
+        if (argc > 5) {
+            BRDF = "Alternate";
         }
     }
     else if (!strcmp(argv[1], "sceneinfo")) {
@@ -64,6 +68,19 @@ int main(int argc, char **argv)
             printf("Not enough arguments for pixelcolor.\n");
             return 0;
         }
+        if (argc > 7) {
+            BRDF = "Alternate";
+        }
+    }
+    else if (!strcmp(argv[1], "pixeltrace")) {
+        command = PIXELTRACE;
+        if (argc < 7) {
+            printf("Not enough arguments for pixeltrace.\n");
+            return 0;
+        }
+        if (argc > 7) {
+            BRDF = "Alternate";
+        }
     }
     else {
         printf("Unrecognized command.\n");
@@ -80,12 +97,7 @@ int main(int argc, char **argv)
     objects = parser.getObjects();
     
     if (command == RENDER) {
-        if (argc < 6) {
-            camera->renderBlinnPhong(objects, lights);
-        }
-        else {
-            camera->renderCookTorrance(objects, lights);
-        }
+        camera->render(objects, lights, BRDF);
     }
     else if (command == SCENEINFO) {
         printf("Camera:\n");
@@ -122,14 +134,12 @@ int main(int argc, char **argv)
     else if (command == PIXELCOLOR) {
         // argv[5] and argv[6] are the x and y coordinates of the pixel to test,
         // respectively.
-        // If there are 7 or less arguments, then it is Blinn-Phong. Otherwise,
-        // Cook-Torrance.
-        if (argc < 8) {
-            camera->pixelColor(objects, lights, atof(argv[5]), atof(argv[6]), "Blinn-Phong");
-        }
-        else {
-            camera->pixelColor(objects, lights, atof(argv[5]), atof(argv[6]), "Alternate");
-        }
+        camera->pixelColor(objects, lights, atof(argv[5]), atof(argv[6]), BRDF);
+    }
+    else if (command == PIXELTRACE) {
+        // argv[5] and argv[6] are the x and y coordinates of the pixel to test,
+        // respectively.
+        camera->pixelTrace(objects, lights, atof(argv[5]), atof(argv[6]), BRDF);
     }
     
     return 0;

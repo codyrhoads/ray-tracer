@@ -17,15 +17,10 @@ public:
     Sphere();
     Sphere(const glm::vec3 &center, const float radius, const glm::vec3 &color,
            const float ambient, const float diffuse, const float specular,
-           const float roughness, const float metallic, const float ior);
+           const float reflection, const float roughness, const float metallic,
+           const float ior);
     
     bool testIntersection(const std::shared_ptr<Ray> &ray, float &t);
-    glm::vec3 getColorBlinnPhong(const std::vector<std::shared_ptr<SceneObject>> &objects,
-                                 const std::vector<std::shared_ptr<LightSource>> &lights,
-                                 const std::shared_ptr<Ray> &ray);
-    glm::vec3 getColorCookTorrance(const std::vector<std::shared_ptr<SceneObject>> &objects,
-                                   const std::vector<std::shared_ptr<LightSource>> &lights,
-                                   const std::shared_ptr<Ray> &ray);
     
     glm::vec3 getCenter() const {return center;}
     float getRadius() const {return radius;}
@@ -33,6 +28,17 @@ public:
     void printObjectInfo();
     std::string getObjectType() {return "Sphere";}
 private:
+    glm::vec3 findLocalColorBlinnPhong(const std::vector<std::shared_ptr<SceneObject>> &objects,
+                                       const std::vector<std::shared_ptr<LightSource>> &lights,
+                                       const std::shared_ptr<Ray> &ray);
+    glm::vec3 findLocalColorCookTorrance(const std::vector<std::shared_ptr<SceneObject>> &objects,
+                                         const std::vector<std::shared_ptr<LightSource>> &lights,
+                                         const std::shared_ptr<Ray> &ray);
+    glm::vec3 findReflectedColor(const std::vector<std::shared_ptr<SceneObject>> &objects,
+                                 const std::vector<std::shared_ptr<LightSource>> &lights,
+                                 const std::shared_ptr<Ray> &ray, const int bouncesLeft,
+                                 const std::string &BRDF);
+    
     glm::vec3 center;
     float radius;
     

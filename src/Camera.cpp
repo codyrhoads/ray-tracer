@@ -15,6 +15,8 @@
 #define STB_IMAGE_WRITE_IMPLEMENTATION
 #include "stb_image_write.h"
 
+#define MAX_BOUNCES 6
+
 using namespace std;
 using namespace glm;
 
@@ -43,41 +45,9 @@ void Camera::setImageSize(const int width, const int height)
     imageHeight = height;
 }
 
-void Camera::renderBlinnPhong(const vector<shared_ptr<SceneObject>> &objects,
-                              const vector<shared_ptr<LightSource>> &lights)
-{
-    int index, rgbIndex = 0;
-    unsigned char *rgbData = new unsigned char[imageWidth * imageHeight * 3];
-    
-    for (int j = imageHeight - 1; j >= 0; j--) {
-        for (int i = 0; i < imageWidth; i++) {
-            setCurrRay(i, j);
-            index = currRay->getClosestObjectIndex(objects);
-            
-            if (index != -1) {
-                vec3 color = objects.at(index)->getColorBlinnPhong(objects, lights, currRay);
-                // set pixel color to object color
-                rgbData[rgbIndex++] = round(std::min(color.r, 1.0f) * 255);
-                rgbData[rgbIndex++] = round(std::min(color.g, 1.0f) * 255);
-                rgbData[rgbIndex++] = round(std::min(color.b, 1.0f) * 255);
-            }
-            else {
-                // set pixel to default color
-                rgbData[rgbIndex++] = 0;
-                rgbData[rgbIndex++] = 0;
-                rgbData[rgbIndex++] = 0;
-            }
-        }
-    }
-    
-    stbi_write_png("output.png", imageWidth, imageHeight, 3, rgbData,
-                   sizeof(unsigned char)*3*imageWidth);
-    
-    delete[] rgbData;
-}
-
-void Camera::renderCookTorrance(const vector<shared_ptr<SceneObject>> &objects,
-                                const vector<shared_ptr<LightSource>> &lights)
+void Camera::render(const vector<shared_ptr<SceneObject>> &objects,
+                    const vector<shared_ptr<LightSource>> &lights,
+                    const string &BRDF)
 {
     int index, rgbIndex = 0;
     unsigned char *rgbData = new unsigned char[imageWidth*imageHeight*3];
@@ -85,12 +55,12 @@ void Camera::renderCookTorrance(const vector<shared_ptr<SceneObject>> &objects,
     for (int j = imageHeight - 1; j >= 0; j--) {
         for (int i = 0; i < imageWidth; i++) {
             setCurrRay(i, j);
-            index = currRay->getClosestObjectIndex(objects);
+            index = currRay->findClosestObjectIndex(objects);
             
             if (index != -1) {
-                vec3 color = objects.at(index)->getColorCookTorrance(objects,
-                                                                     lights,
-                                                                     currRay);
+                vec3 color = objects.at(index)->getShadedColor(objects, lights,
+                                                               currRay, MAX_BOUNCES,
+                                                               BRDF);
                 
                 // set pixel color to object color
                 rgbData[rgbIndex++] = round(std::min(color.r, 1.0f) * 255);
@@ -125,7 +95,7 @@ void Camera::firstHit(const vector<shared_ptr<SceneObject>> &objects,
 {
     pixelRay(pixelX, pixelY);
     
-    int index = currRay->getClosestObjectIndex(objects);
+    int index = currRay->findClosestObjectIndex(objects);
     
     if (index != -1) {
         shared_ptr<SceneObject> obj = objects.at(index);
@@ -142,21 +112,16 @@ void Camera::firstHit(const vector<shared_ptr<SceneObject>> &objects,
 void Camera::pixelColor(const vector<shared_ptr<SceneObject>> &objects,
                         const vector<shared_ptr<LightSource>> &lights,
                         const float pixelX, const float pixelY,
-                        const string BRDF)
+                        const string &BRDF)
 {
     pixelRay(pixelX, pixelY);
     
-    int index = currRay->getClosestObjectIndex(objects);
+    int index = currRay->findClosestObjectIndex(objects);
     
     if (index != -1) {
         vec3 color;
         shared_ptr<SceneObject> obj = objects.at(index);
-        if (BRDF == "Blinn-Phong") {
-            color = obj->getColorBlinnPhong(objects, lights, currRay);
-        }
-        else {
-            color = obj->getColorCookTorrance(objects, lights, currRay);
-        }
+        color = obj->getShadedColor(objects, lights, currRay, MAX_BOUNCES, BRDF);
         
         printf("T = %.4g\n", currRay->getIntersectionTime());
         printf("Object Type: %s\n", obj->getObjectType().c_str());
@@ -169,6 +134,14 @@ void Camera::pixelColor(const vector<shared_ptr<SceneObject>> &objects,
     else {
         printf("No Hit\n");
     }
+}
+
+void Camera::pixelTrace(const vector<shared_ptr<SceneObject>> &objects,
+                        const vector<shared_ptr<LightSource>> &lights,
+                        const float pixelX, const float pixelY,
+                        const string &BRDF)
+{
+    printf("Not implemented\n");
 }
 
 void Camera::printCameraInfo()
