@@ -25,7 +25,7 @@ public:
     void printObjectInfo();
     std::string getObjectType() {return "Triangle";}
 private:
-    glm::vec3 getNormal() const {return normalize(cross(v1 - v0, v2 - v0));}
+    glm::vec3 getNormalAtPoint(const glm::vec3 &point) const {return normalize(cross(v1 - v0, v2 - v0));}
     
     glm::vec3 v0, v1, v2;
 };

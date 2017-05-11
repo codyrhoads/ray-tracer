@@ -37,7 +37,6 @@ public:
     float getMetallic() const {return metallic;}
     float getIOR() const {return ior;}
     
-    virtual glm::vec3 getNormal() const {return glm::vec3(0);}
     virtual glm::vec3 getNormalAtPoint(const glm::vec3 &point) const {return glm::vec3(0);}
     
     virtual void printObjectInfo();

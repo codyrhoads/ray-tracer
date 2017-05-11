@@ -49,8 +49,9 @@ void Camera::render(const vector<shared_ptr<SceneObject>> &objects,
                     const string &BRDF)
 {
     int index, rgbIndex = 0;
-    unsigned char *rgbData = new unsigned char[imageWidth*imageHeight*3];
+    unsigned char *rgbData = new unsigned char[imageWidth * imageHeight * 3];
     string trace = "";
+    Shader shader = Shader(objects, lights, BRDF);
     
     for (int j = imageHeight - 1; j >= 0; j--) {
         for (int i = 0; i < imageWidth; i++) {
@@ -58,8 +59,7 @@ void Camera::render(const vector<shared_ptr<SceneObject>> &objects,
             index = currRay->findClosestObjectIndex(objects);
             
             if (index != -1) {
-                vec3 color = Shader::getShadedColor(objects, lights, currRay, 0,
-                                                    BRDF, trace);
+                vec3 color = shader.getShadedColor(currRay, 0, trace);
                 
                 // set pixel color to object color
                 rgbData[rgbIndex++] = round(std::min(color.r, 1.0f) * 255);
@@ -76,7 +76,7 @@ void Camera::render(const vector<shared_ptr<SceneObject>> &objects,
     }
     
     stbi_write_png("output.png", imageWidth, imageHeight, 3, rgbData,
-                   sizeof(unsigned char)*3*imageWidth);
+                   sizeof(unsigned char) * 3 * imageWidth);
     
     delete[] rgbData;
 }
@@ -115,6 +115,7 @@ void Camera::pixelColor(const vector<shared_ptr<SceneObject>> &objects,
                         const string &BRDF)
 {
     string trace = "";
+    Shader shader = Shader(objects, lights, BRDF);
     
     pixelRay(pixelX, pixelY);
     
@@ -123,7 +124,7 @@ void Camera::pixelColor(const vector<shared_ptr<SceneObject>> &objects,
     if (index != -1) {
         vec3 color;
         shared_ptr<SceneObject> obj = objects.at(index);
-        color = Shader::getShadedColor(objects, lights, currRay, 0, BRDF, trace);
+        color = shader.getShadedColor(currRay, 0, trace);
         
         printf("T = %.4g\n", currRay->getIntersectionTime());
         printf("Object Type: %s\n", obj->getObjectType().c_str());
@@ -142,7 +143,9 @@ void Camera::pixelTrace(const vector<shared_ptr<SceneObject>> &objects,
                         const vector<shared_ptr<LightSource>> &lights,
                         const float pixelX, const float pixelY,
                         const string &BRDF)
-{    
+{
+    Shader shader = Shader(objects, lights, BRDF);
+    
     setCurrRay(pixelX, pixelY);
     printf("Pixel: [%.4g, %.4g] ", pixelX, pixelY);
     
@@ -157,7 +160,7 @@ void Camera::pixelTrace(const vector<shared_ptr<SceneObject>> &objects,
         + ") at T = " + currRay->getIntersectionTimeString() + ", Intersection = "
         + currRay->getIntersectionPointString();
         
-        color = Shader::getShadedColor(objects, lights, currRay, 0, BRDF, trace);
+        color = shader.getShadedColor(currRay, 0, trace);
         
         printf("Color: (%.4g, %.4g, %.4g)\n",
                round(std::min(color.r, 1.0f) * 255),

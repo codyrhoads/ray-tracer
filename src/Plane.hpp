@@ -28,6 +28,8 @@ public:
     void printObjectInfo();
     std::string getObjectType() {return "Plane";}
 private:
+    glm::vec3 getNormalAtPoint(const glm::vec3 &point) const {return normal;}
+    
     glm::vec3 normal;
     float distance;
     

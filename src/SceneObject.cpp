@@ -68,13 +68,7 @@ void SceneObject::printObjectInfo()
 string SceneObject::getNormalAtPointString(const vec3 &point)
 {
     ostringstream info;
-    vec3 normal;
-    if (getObjectType() == "Sphere") {
-        normal = getNormalAtPoint(point);
-    }
-    else {
-        normal = getNormal();
-    }
+    vec3 normal = getNormalAtPoint(point);
     info << setprecision(4) << "{" << normal.x << " " << normal.y << " " << normal.z << "}";
     return info.str();
 }

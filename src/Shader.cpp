@@ -18,22 +18,32 @@
 using namespace std;
 using namespace glm;
 
-vec3 Shader::getShadedColor(const vector<shared_ptr<SceneObject>> &objects,
-                            const vector<shared_ptr<LightSource>> &lights,
-                            const shared_ptr<Ray> &ray, const int bounces,
-                            const string &BRDF, string &trace)
+Shader::Shader() :
+objects(vector<shared_ptr<SceneObject>>()),
+lights(vector<shared_ptr<LightSource>>()),
+BRDF("NULL")
+{
+    
+}
+
+Shader::Shader(const vector<shared_ptr<SceneObject>> &objects,
+               const vector<shared_ptr<LightSource>> &lights,
+               const string &BRDF) :
+objects(objects),
+lights(lights),
+BRDF(BRDF)
+{
+    
+}
+
+vec3 Shader::getShadedColor(const shared_ptr<Ray> &ray, const int bounces,
+                            string &trace)
 {
     vec3 localColor = vec3(0), reflectedColor = vec3(0), refractedColor = vec3(0);
     string indent = "";
     shared_ptr<SceneObject> obj = objects.at(ray->getIndexOfIntersectedObject());
     
-    vec3 N;
-    if (obj->getObjectType() == "Sphere") {
-        N = obj->getNormalAtPoint(ray->getIntersectionPoint());
-    }
-    else {
-        N = obj->getNormal();
-    }
+    vec3 N = obj->getNormalAtPoint(ray->getIntersectionPoint());
     
     // If ray is exiting a shape, then flip the normal.
     if (dot(ray->getDirection(), N) > 0) {
@@ -41,10 +51,10 @@ vec3 Shader::getShadedColor(const vector<shared_ptr<SceneObject>> &objects,
     }
     
     if (BRDF == "Blinn-Phong") {
-        localColor = findLocalColorBlinnPhong(objects, lights, ray);
+        localColor = findLocalColorBlinnPhong(ray);
     }
     else {
-        localColor = findLocalColorCookTorrance(objects, lights, ray);
+        localColor = findLocalColorCookTorrance(ray);
     }
     
     for (int i = 0; i < bounces; i++) {
@@ -58,11 +68,11 @@ vec3 Shader::getShadedColor(const vector<shared_ptr<SceneObject>> &objects,
     
     if (bounces < MAX_BOUNCES) {
         if (obj->getFilter() > 0) {
-            refractedColor = findRefractedColor(objects, lights, ray, bounces + 1, BRDF, trace);
+            refractedColor = findRefractedColor(ray, bounces + 1, trace);
         }
         if (obj->getReflection() > 0) {
-            reflectedColor = obj->getColor() * findReflectedColor(objects, lights, ray,
-                                                                  bounces + 1, BRDF, trace);
+            reflectedColor = obj->getColor() * findReflectedColor(ray, bounces + 1,
+                                                                  trace);
         }
     }
     
@@ -78,22 +88,14 @@ vec3 Shader::getShadedColor(const vector<shared_ptr<SceneObject>> &objects,
            refractionContribution * refractedColor;
 }
 
-vec3 Shader::findLocalColorBlinnPhong(const vector<shared_ptr<SceneObject>> &objects,
-                                      const vector<shared_ptr<LightSource>> &lights,
-                                      const shared_ptr<Ray> &ray)
+vec3 Shader::findLocalColorBlinnPhong(const shared_ptr<Ray> &ray)
 {
     vec3 colorSum = vec3(0);
     shared_ptr<SceneObject> obj = objects.at(ray->getIndexOfIntersectedObject());
     const vec3 ka = obj->getColor() * obj->getAmbient();
     const vec3 kd = obj->getColor() * obj->getDiffuse();
     const vec3 ks = obj->getColor() * obj->getSpecular();
-    vec3 N;
-    if (obj->getObjectType() == "Sphere") {
-        N = obj->getNormalAtPoint(ray->getIntersectionPoint());
-    }
-    else {
-        N = obj->getNormal();
-    }
+    const vec3 N = obj->getNormalAtPoint(ray->getIntersectionPoint());
     const float power = (2.0/pow(obj->getRoughness(), 2.0)) - 2.0;
     
     for (unsigned int i = 0; i < lights.size(); i++) {
@@ -126,21 +128,13 @@ vec3 Shader::findLocalColorBlinnPhong(const vector<shared_ptr<SceneObject>> &obj
     return ka + colorSum;
 }
 
-vec3 Shader::findLocalColorCookTorrance(const vector<shared_ptr<SceneObject>> &objects,
-                                        const vector<shared_ptr<LightSource>> &lights,
-                                        const shared_ptr<Ray> &ray)
+vec3 Shader::findLocalColorCookTorrance(const shared_ptr<Ray> &ray)
 {
     vec3 colorSum = vec3(0);
     shared_ptr<SceneObject> obj = objects.at(ray->getIndexOfIntersectedObject());
     const vec3 ka = obj->getColor() * obj->getAmbient();
     const vec3 kd = obj->getColor() * obj->getDiffuse();
-    vec3 N;
-    if (obj->getObjectType() == "Sphere") {
-        N = obj->getNormalAtPoint(ray->getIntersectionPoint());
-    }
-    else {
-        N = obj->getNormal();
-    }
+    const vec3 N = obj->getNormalAtPoint(ray->getIntersectionPoint());
     const float alpha = pow(obj->getRoughness(), 2);
     
     for (unsigned int i = 0; i < lights.size(); i++) {
@@ -186,23 +180,15 @@ vec3 Shader::findLocalColorCookTorrance(const vector<shared_ptr<SceneObject>> &o
     return ka + colorSum;
 }
 
-vec3 Shader::findRefractedColor(const vector<shared_ptr<SceneObject>> &objects,
-                                const vector<shared_ptr<LightSource>> &lights,
-                                const shared_ptr<Ray> &ray, const int bounces,
-                                const string &BRDF, string &trace)
+vec3 Shader::findRefractedColor(const shared_ptr<Ray> &ray, const int bounces,
+                                string &trace)
 {
     vec3 refractedColor = vec3(0);
     int index = -1;
     bool enteringObj = true;
     
     shared_ptr<SceneObject> obj = objects.at(ray->getIndexOfIntersectedObject());
-    vec3 n;
-    if (obj->getObjectType() == "Sphere") {
-        n = obj->getNormalAtPoint(ray->getIntersectionPoint());
-    }
-    else {
-        n = obj->getNormal();
-    }
+    vec3 n = obj->getNormalAtPoint(ray->getIntersectionPoint());
     const vec3 d = ray->getDirection();
     
     float d_dot_n = dot(d, n);
@@ -252,8 +238,7 @@ vec3 Shader::findRefractedColor(const vector<shared_ptr<SceneObject>> &objects,
         + refractedRay->getIntersectionTimeString() + ", Intersection = "
         + refractedRay->getIntersectionPointString();
         
-        refractedColor = Shader::getShadedColor(objects, lights, refractedRay,
-                                                bounces, BRDF, trace);
+        refractedColor = getShadedColor(refractedRay, bounces, trace);
     }
     else {
         trace += "\n" + indent + "|   No intersection.";
@@ -271,21 +256,13 @@ vec3 Shader::findRefractedColor(const vector<shared_ptr<SceneObject>> &objects,
     return refractedColor * attenuation;
 }
 
-vec3 Shader::findReflectedColor(const vector<shared_ptr<SceneObject>> &objects,
-                                const vector<shared_ptr<LightSource>> &lights,
-                                const shared_ptr<Ray> &ray, const int bounces,
-                                const string &BRDF, string &trace)
+vec3 Shader::findReflectedColor(const shared_ptr<Ray> &ray, const int bounces,
+                                string &trace)
 {
     vec3 reflectedColor = vec3(0);
     int index = -1;
     shared_ptr<SceneObject> obj = objects.at(ray->getIndexOfIntersectedObject());
-    vec3 n;
-    if (obj->getObjectType() == "Sphere") {
-        n = obj->getNormalAtPoint(ray->getIntersectionPoint());
-    }
-    else {
-        n = obj->getNormal();
-    }
+    const vec3 n = obj->getNormalAtPoint(ray->getIntersectionPoint());
     const vec3 d = ray->getDirection();
     const vec3 reflectedDirection = normalize(d - 2 * (dot(d, n)) * n);
     
@@ -315,8 +292,7 @@ vec3 Shader::findReflectedColor(const vector<shared_ptr<SceneObject>> &objects,
         + reflectedRay->getIntersectionTimeString() + ", Intersection = "
         + reflectedRay->getIntersectionPointString();
         
-        reflectedColor = Shader::getShadedColor(objects, lights, reflectedRay,
-                                                bounces, BRDF, trace);
+        reflectedColor = getShadedColor(reflectedRay, bounces, trace);
     }
     else {
         trace += "\n" + indent + "|   No intersection.";
@@ -333,7 +309,7 @@ float Shader::schlicksApproximation(const float ior, const vec3 &normal, const v
     return F0 + (1 - F0) * pow(1 - dot(normal, view), 5);
 }
 
-vec3 Shader::getAttenuation(const vec3 color, const float distance)
+vec3 Shader::getAttenuation(const vec3 &color, const float distance)
 {
     return exp((1.0f - color) * 0.15f * -distance);
 }

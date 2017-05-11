@@ -21,28 +21,27 @@ class Ray;
 class Shader
 {
 public:
-    static glm::vec3 getShadedColor(const std::vector<std::shared_ptr<SceneObject>> &objects,
-                                    const std::vector<std::shared_ptr<LightSource>> &lights,
-                                    const std::shared_ptr<Ray> &ray, const int bounces,
-                                    const std::string &BRDF, std::string &trace);
+    Shader();
+    Shader(const std::vector<std::shared_ptr<SceneObject>> &objects,
+           const std::vector<std::shared_ptr<LightSource>> &lights,
+           const std::string &BRDF);
+    
+    glm::vec3 getShadedColor(const std::shared_ptr<Ray> &ray, const int bounces,
+                             std::string &trace);
 private:
-    static glm::vec3 findLocalColorBlinnPhong(const std::vector<std::shared_ptr<SceneObject>> &objects,
-                                              const std::vector<std::shared_ptr<LightSource>> &lights,
-                                              const std::shared_ptr<Ray> &ray);
-    static glm::vec3 findLocalColorCookTorrance(const std::vector<std::shared_ptr<SceneObject>> &objects,
-                                                const std::vector<std::shared_ptr<LightSource>> &lights,
-                                                const std::shared_ptr<Ray> &ray);
-    static glm::vec3 findReflectedColor(const std::vector<std::shared_ptr<SceneObject>> &objects,
-                                        const std::vector<std::shared_ptr<LightSource>> &lights,
-                                        const std::shared_ptr<Ray> &ray, const int bounces,
-                                        const std::string &BRDF, std::string &trace);
-    static glm::vec3 findRefractedColor(const std::vector<std::shared_ptr<SceneObject>> &objects,
-                                        const std::vector<std::shared_ptr<LightSource>> &lights,
-                                        const std::shared_ptr<Ray> &ray, const int bounces,
-                                        const std::string &BRDF, std::string &trace);
+    glm::vec3 findLocalColorBlinnPhong(const std::shared_ptr<Ray> &ray);
+    glm::vec3 findLocalColorCookTorrance(const std::shared_ptr<Ray> &ray);
+    glm::vec3 findReflectedColor(const std::shared_ptr<Ray> &ray, const int bounces,
+                                 std::string &trace);
+    glm::vec3 findRefractedColor(const std::shared_ptr<Ray> &ray, const int bounces,
+                                 std::string &trace);
     static float schlicksApproximation(const float ior, const glm::vec3 &normal,
                                        const glm::vec3 &view);
-    static glm::vec3 getAttenuation(const glm::vec3 color, const float distance);
+    static glm::vec3 getAttenuation(const glm::vec3 &color, const float distance);
+    
+    const std::vector<std::shared_ptr<SceneObject>> objects;
+    const std::vector<std::shared_ptr<LightSource>> lights;
+    const std::string BRDF;
 };
 
 #endif /* Shader_hpp */
