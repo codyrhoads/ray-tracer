@@ -26,34 +26,26 @@ public:
                 const float metallic, const float ior);
     
     virtual bool testIntersection(const std::shared_ptr<Ray> &ray, float &t);
-    glm::vec3 getShadedColor(const std::vector<std::shared_ptr<SceneObject>> &objects,
-                             const std::vector<std::shared_ptr<LightSource>> &lights,
-                             const std::shared_ptr<Ray> &ray, const int bouncesLeft,
-                             const std::string &BRDF);
     
     glm::vec3 getColor() const {return color;}
     float getAmbient() const {return ambient;}
     float getDiffuse() const {return diffuse;}
     float getSpecular() const {return specular;}
+    float getReflection() const {return reflection;}
     float getRoughness() const {return roughness;}
-    
-    virtual void printObjectInfo();
-    virtual std::string getObjectType() {return "NULL";}
-protected:
-    glm::vec3 findLocalColorBlinnPhong(const std::vector<std::shared_ptr<SceneObject>> &objects,
-                                       const std::vector<std::shared_ptr<LightSource>> &lights,
-                                       const std::shared_ptr<Ray> &ray);
-    glm::vec3 findLocalColorCookTorrance(const std::vector<std::shared_ptr<SceneObject>> &objects,
-                                         const std::vector<std::shared_ptr<LightSource>> &lights,
-                                         const std::shared_ptr<Ray> &ray);
-    glm::vec3 findReflectedColor(const std::vector<std::shared_ptr<SceneObject>> &objects,
-                                 const std::vector<std::shared_ptr<LightSource>> &lights,
-                                 const std::shared_ptr<Ray> &ray, const int bouncesLeft,
-                                 const std::string &BRDF);
+    float getMetallic() const {return metallic;}
+    float getIOR() const {return ior;}
     
     virtual glm::vec3 getNormal() const {return glm::vec3(0);}
     virtual glm::vec3 getNormalAtPoint(const glm::vec3 &point) const {return glm::vec3(0);}
     
+    virtual void printObjectInfo();
+    virtual std::string getNormalAtPointString(const glm::vec3 &point);
+    std::string getAmbientString() const;
+    std::string getDiffuseString() const;
+    std::string getSpecularString() const;
+    virtual std::string getObjectType() {return "NULL";}
+protected:
     glm::vec3 color;
     float ambient, diffuse, specular, reflection, roughness, metallic, ior;
     

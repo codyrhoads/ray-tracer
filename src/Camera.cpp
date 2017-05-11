@@ -12,10 +12,9 @@
 #include "SceneObject.hpp"
 #include "Ray.hpp"
 #include "LightSource.hpp"
+#include "Shader.hpp"
 #define STB_IMAGE_WRITE_IMPLEMENTATION
 #include "stb_image_write.h"
-
-#define MAX_BOUNCES 6
 
 using namespace std;
 using namespace glm;
@@ -51,6 +50,7 @@ void Camera::render(const vector<shared_ptr<SceneObject>> &objects,
 {
     int index, rgbIndex = 0;
     unsigned char *rgbData = new unsigned char[imageWidth*imageHeight*3];
+    string trace = "";
     
     for (int j = imageHeight - 1; j >= 0; j--) {
         for (int i = 0; i < imageWidth; i++) {
@@ -58,9 +58,8 @@ void Camera::render(const vector<shared_ptr<SceneObject>> &objects,
             index = currRay->findClosestObjectIndex(objects);
             
             if (index != -1) {
-                vec3 color = objects.at(index)->getShadedColor(objects, lights,
-                                                               currRay, MAX_BOUNCES,
-                                                               BRDF);
+                vec3 color = Shader::getShadedColor(objects, lights, currRay, 0,
+                                                    BRDF, trace);
                 
                 // set pixel color to object color
                 rgbData[rgbIndex++] = round(std::min(color.r, 1.0f) * 255);
@@ -115,6 +114,8 @@ void Camera::pixelColor(const vector<shared_ptr<SceneObject>> &objects,
                         const float pixelX, const float pixelY,
                         const string &BRDF)
 {
+    string trace = "";
+    
     pixelRay(pixelX, pixelY);
     
     int index = currRay->findClosestObjectIndex(objects);
@@ -122,7 +123,7 @@ void Camera::pixelColor(const vector<shared_ptr<SceneObject>> &objects,
     if (index != -1) {
         vec3 color;
         shared_ptr<SceneObject> obj = objects.at(index);
-        color = obj->getShadedColor(objects, lights, currRay, MAX_BOUNCES, BRDF);
+        color = Shader::getShadedColor(objects, lights, currRay, 0, BRDF, trace);
         
         printf("T = %.4g\n", currRay->getIntersectionTime());
         printf("Object Type: %s\n", obj->getObjectType().c_str());
@@ -141,30 +142,32 @@ void Camera::pixelTrace(const vector<shared_ptr<SceneObject>> &objects,
                         const vector<shared_ptr<LightSource>> &lights,
                         const float pixelX, const float pixelY,
                         const string &BRDF)
-{
-//    setCurrRay(pixelX, pixelY);
-//    printf("Pixel: [%.4g, %.4g] ", pixelX, pixelY);
-//    
-//    int index = currRay->findClosestObjectIndex(objects);
-//    
-//    if (index != 1) {
-//        vec3 color;
-//        shared_ptr<SceneObject> obj = objects.at(index);
-//        string trace = "o - Iteration type: Primary\n";
-//        trace += "|   " + currRay->getRayInfo() + "\n|    ";
-//        
-//        color = obj->getShadedColor(objects, lights, currRay, MAX_BOUNCES, BRDF);
-//        
-//        printf("Color: (%.4g, %.4g, %.4g)\n",
-//               round(std::min(color.r, 1.0f) * 255),
-//               round(std::min(color.g, 1.0f) * 255),
-//               round(std::min(color.b, 1.0f) * 255));
-//        printf("%s", trace.c_str());
-//    }
-//    else {
-//        printf("No Hit\n");
-//    }
-    printf("Not implemented");
+{    
+    setCurrRay(pixelX, pixelY);
+    printf("Pixel: [%.4g, %.4g] ", pixelX, pixelY);
+    
+    int index = currRay->findClosestObjectIndex(objects);
+    
+    if (index != -1) {
+        vec3 color;
+        shared_ptr<SceneObject> obj = objects.at(index);
+        string trace = "o - Iteration type: Primary";
+        trace += "\n|   " + currRay->getRayInfo();
+        trace += "\n|   Hit Object ID (" + to_string(index + 1) + " - " + obj->getObjectType()
+        + ") at T = " + currRay->getIntersectionTimeString() + ", Intersection = "
+        + currRay->getIntersectionPointString();
+        
+        color = Shader::getShadedColor(objects, lights, currRay, 0, BRDF, trace);
+        
+        printf("Color: (%.4g, %.4g, %.4g)\n",
+               round(std::min(color.r, 1.0f) * 255),
+               round(std::min(color.g, 1.0f) * 255),
+               round(std::min(color.b, 1.0f) * 255));
+        printf("%s\n", trace.c_str());
+    }
+    else {
+        printf("No Hit\n");
+    }
 }
 
 void Camera::printCameraInfo()

@@ -18,7 +18,8 @@ using namespace glm;
 Ray::Ray() :
 origin(vec3(0)),
 direction(vec3(0)),
-t(0)
+t(0),
+indexOfIntersected(-1)
 {
     
 }
@@ -26,7 +27,8 @@ t(0)
 Ray::Ray(const vec3 &origin, const vec3 &dir) :
 origin(origin),
 direction(dir),
-t(0)
+t(0),
+indexOfIntersected(-1)
 {
     
 }
@@ -45,6 +47,7 @@ int Ray::findClosestObjectIndex(const vector<shared_ptr<SceneObject>> &objects)
         }
     }
     
+    indexOfIntersected = index;
     return index;
 }
 
@@ -53,6 +56,21 @@ string Ray::getRayInfo()
     ostringstream info;
     info << setprecision(4) << "Ray: {" << origin.x << " " << origin.y << " " << origin.z
          << "} -> {" << direction.x << " " << direction.y << " " << direction.z << "}";
-    
+    return info.str();
+}
+
+string Ray::getIntersectionTimeString()
+{
+    ostringstream info;
+    info << setprecision(4) << t;
+    return info.str();
+}
+
+string Ray::getIntersectionPointString()
+{
+    ostringstream info;
+    vec3 intersection = getIntersectionPoint();
+    info << setprecision(4) << "{" << intersection.x << " " << intersection.y
+         << " " << intersection.z << "}";
     return info.str();
 }
