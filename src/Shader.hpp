@@ -42,6 +42,7 @@ private:
                                         const std::string &BRDF, std::string &trace);
     static float schlicksApproximation(const float ior, const glm::vec3 &normal,
                                        const glm::vec3 &view);
+    static glm::vec3 getAttenuation(const glm::vec3 color, const float distance);
 };
 
 #endif /* Shader_hpp */

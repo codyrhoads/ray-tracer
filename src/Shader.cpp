@@ -56,7 +56,6 @@ vec3 Shader::getShadedColor(const vector<shared_ptr<SceneObject>> &objects,
     trace += "\n" + indent + "|   Diffuse: " + obj->getDiffuseString();
     trace += "\n" + indent + "|   Specular: " + obj->getSpecularString();
     
-    
     if (bounces < MAX_BOUNCES) {
         if (obj->getFilter() > 0) {
             refractedColor = findRefractedColor(objects, lights, ray, bounces + 1, BRDF, trace);
@@ -194,6 +193,8 @@ vec3 Shader::findRefractedColor(const vector<shared_ptr<SceneObject>> &objects,
 {
     vec3 refractedColor = vec3(0);
     int index = -1;
+    bool enteringObj = true;
+    
     shared_ptr<SceneObject> obj = objects.at(ray->getIndexOfIntersectedObject());
     vec3 n;
     if (obj->getObjectType() == "Sphere") {
@@ -213,6 +214,7 @@ vec3 Shader::findRefractedColor(const vector<shared_ptr<SceneObject>> &objects,
         n1_divide_n2 = 1/obj->getIOR();
     }
     else {
+        enteringObj = false;
         // If positive, they are in same direction, which means exiting.
         n1_divide_n2 = obj->getIOR();
         // We also need to flip the normal.
@@ -238,6 +240,7 @@ vec3 Shader::findRefractedColor(const vector<shared_ptr<SceneObject>> &objects,
     for (int i = 0; i < bounces; i++) {
         indent += "| ";
     }
+    
     trace += "\n|\n|\\";
     trace += "\n" + indent + "o - Iteration type: Refraction";
     trace += "\n" + indent + "|   " + refractedRay->getRayInfo();
@@ -257,7 +260,15 @@ vec3 Shader::findRefractedColor(const vector<shared_ptr<SceneObject>> &objects,
         trace += "\n" + indent + "|----";
     }
     
-    return refractedColor;
+    // Calculate attenuation. We only do this while the ray is inside the obj
+    // (hence only doing it when enteringObj is true).
+    vec3 attenuation = vec3(1);
+    if (enteringObj) {
+        attenuation = getAttenuation(obj->getColor(), glm::distance(refractedRay->getIntersectionPoint(),
+                                                                    refractedRay->getOrigin()));
+    }
+    
+    return refractedColor * attenuation;
 }
 
 vec3 Shader::findReflectedColor(const vector<shared_ptr<SceneObject>> &objects,
@@ -320,4 +331,9 @@ float Shader::schlicksApproximation(const float ior, const vec3 &normal, const v
     const float F0 = pow(ior - 1, 2)/pow(ior + 1, 2);
     
     return F0 + (1 - F0) * pow(1 - dot(normal, view), 5);
+}
+
+vec3 Shader::getAttenuation(const vec3 color, const float distance)
+{
+    return exp((1.0f - color) * 0.15f * -distance);
 }
