@@ -27,6 +27,19 @@ vec3 Shader::getShadedColor(const vector<shared_ptr<SceneObject>> &objects,
     string indent = "";
     shared_ptr<SceneObject> obj = objects.at(ray->getIndexOfIntersectedObject());
     
+    vec3 N;
+    if (obj->getObjectType() == "Sphere") {
+        N = obj->getNormalAtPoint(ray->getIntersectionPoint());
+    }
+    else {
+        N = obj->getNormal();
+    }
+    
+    // If ray is exiting a shape, then flip the normal.
+    if (dot(ray->getDirection(), N) > 0) {
+        N = -N;
+    }
+    
     if (BRDF == "Blinn-Phong") {
         localColor = findLocalColorBlinnPhong(objects, lights, ray);
     }
@@ -43,24 +56,17 @@ vec3 Shader::getShadedColor(const vector<shared_ptr<SceneObject>> &objects,
     trace += "\n" + indent + "|   Diffuse: " + obj->getDiffuseString();
     trace += "\n" + indent + "|   Specular: " + obj->getSpecularString();
     
+    
     if (bounces < MAX_BOUNCES) {
         if (obj->getFilter() > 0) {
             refractedColor = findRefractedColor(objects, lights, ray, bounces + 1, BRDF, trace);
         }
-        
         if (obj->getReflection() > 0) {
             reflectedColor = obj->getColor() * findReflectedColor(objects, lights, ray,
                                                                   bounces + 1, BRDF, trace);
         }
     }
     
-    vec3 N;
-    if (obj->getObjectType() == "Sphere") {
-        N = obj->getNormalAtPoint(ray->getIntersectionPoint());
-    }
-    else {
-        N = obj->getNormal();
-    }
     const float fresnelReflectance = schlicksApproximation(obj->getIOR(), N, -ray->getDirection());
     
     const float localContribution = (1 - obj->getFilter()) * (1 - obj->getReflection());
@@ -169,8 +175,6 @@ vec3 Shader::findLocalColorCookTorrance(const vector<shared_ptr<SceneObject>> &o
             float G = std::min(1.0f, (2 * NdotH * NdotV)/VdotH);
             G = std::min(G, (2 * NdotH * NdotL)/VdotH);
             
-            //const float F0 = pow(obj->getIOR() - 1, 2)/pow(obj->getIOR() + 1, 2);
-            //const float F = F0 + (1 - F0) * pow(1 - VdotH, 5);
             const float F = schlicksApproximation(obj->getIOR(), H, V);
             
             const float rs = (D * G * F)/(4 * NdotL * NdotV);
@@ -232,18 +236,18 @@ vec3 Shader::findRefractedColor(const vector<shared_ptr<SceneObject>> &objects,
     
     string indent;
     for (int i = 0; i < bounces; i++) {
-        indent += "  ";
+        indent += "| ";
     }
-    trace += "\n|\n \\";
+    trace += "\n|\n|\\";
     trace += "\n" + indent + "o - Iteration type: Refraction";
-    trace += "\n" + indent + "|   " + ray->getRayInfo();
+    trace += "\n" + indent + "|   " + refractedRay->getRayInfo();
     
     // If the refraction hits an object.
     if (index > -1) {
-        trace += "\n|   Hit Object ID (" + to_string(index + 1) + " - "
-        + objects.at(index)->getObjectType() + ") at T = "
-        + ray->getIntersectionTimeString() + ", Intersection = "
-        + ray->getIntersectionPointString();
+        trace += "\n" + indent + "|   Hit Object ID (" + to_string(index + 1)
+        + " - " + objects.at(index)->getObjectType() + ") at T = "
+        + refractedRay->getIntersectionTimeString() + ", Intersection = "
+        + refractedRay->getIntersectionPointString();
         
         refractedColor = Shader::getShadedColor(objects, lights, refractedRay,
                                                 bounces, BRDF, trace);
@@ -276,7 +280,7 @@ vec3 Shader::findReflectedColor(const vector<shared_ptr<SceneObject>> &objects,
     
     shared_ptr<Ray> reflectedRay;
     if (obj->getObjectType() == "Sphere") {
-        reflectedRay = make_shared<Ray>(ray->getIntersectionPoint() + reflectedDirection * SPHERE_EPSILON,
+        reflectedRay = make_shared<Ray>(ray->getIntersectionPoint() + reflectedDirection * EPSILON,
                                         reflectedDirection);
     }
     else {
@@ -291,14 +295,14 @@ vec3 Shader::findReflectedColor(const vector<shared_ptr<SceneObject>> &objects,
     }
     trace += "\n|\n \\";
     trace += "\n" + indent + "o - Iteration type: Reflection";
-    trace += "\n" + indent + "|   " + ray->getRayInfo();
+    trace += "\n" + indent + "|   " + reflectedRay->getRayInfo();
     
     // If the reflection hits an object.
     if (index > -1) {
         trace += "\n|   Hit Object ID (" + to_string(index + 1) + " - "
         + objects.at(index)->getObjectType() + ") at T = "
-        + ray->getIntersectionTimeString() + ", Intersection = "
-        + ray->getIntersectionPointString();
+        + reflectedRay->getIntersectionTimeString() + ", Intersection = "
+        + reflectedRay->getIntersectionPointString();
         
         reflectedColor = Shader::getShadedColor(objects, lights, reflectedRay,
                                                 bounces, BRDF, trace);
