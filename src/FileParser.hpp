@@ -38,8 +38,10 @@ private:
     
     void findAndSetSingleValueParameter(const std::string segment, float &parameter,
                                         const std::string indicator, const size_t start);
-    size_t findAndSetVectorParameter(const std::string segment, glm::vec3 &parameter,
-                                     const std::string indicator, const size_t start);
+    size_t findAndSetVec3Parameter(const std::string segment, glm::vec3 &parameter,
+                                   const std::string indicator, const size_t start);
+    bool findAndSetVec4Parameter(const std::string segment, glm::vec4 &parameter,
+                                 const std::string indicator, const size_t start);
     
     std::shared_ptr<Camera> camera;
     std::vector<std::shared_ptr<LightSource>> lights;

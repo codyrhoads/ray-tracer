@@ -91,10 +91,10 @@ void FileParser::parseCamera(ifstream &file)
     // Remove all newlines from the string.
     segment.erase(remove(segment.begin(), segment.end(), '\n'), segment.end());
     
-    findAndSetVectorParameter(segment, location, "location<", 0);
-    findAndSetVectorParameter(segment, up, "up<", 0);
-    findAndSetVectorParameter(segment, right, "right<", 0);
-    findAndSetVectorParameter(segment, lookAt, "look_at<", 0);
+    findAndSetVec3Parameter(segment, location, "location<", 0);
+    findAndSetVec3Parameter(segment, up, "up<", 0);
+    findAndSetVec3Parameter(segment, right, "right<", 0);
+    findAndSetVec3Parameter(segment, lookAt, "look_at<", 0);
     
     camera = make_shared<Camera>(location, up, right, lookAt);
 }
@@ -115,8 +115,8 @@ void FileParser::parseLight(ifstream &file)
     // Remove all newlines from the string.
     segment.erase(remove(segment.begin(), segment.end(), '\n'), segment.end());
     
-    findAndSetVectorParameter(segment, location, "<", 0);
-    findAndSetVectorParameter(segment, color, "colorrgb<", 0);
+    findAndSetVec3Parameter(segment, location, "<", 0);
+    findAndSetVec3Parameter(segment, color, "colorrgb<", 0);
     
     shared_ptr<LightSource> ls = make_shared<LightSource>(location, color);
     lights.push_back(ls);
@@ -126,10 +126,12 @@ void FileParser::parseSphere(ifstream &file)
 {
     vec3 center = vec3(0);
     vec3 color = vec3(0);
+    vec4 rgbf = vec4(0);
     float radius = 0, ambient = 0, diffuse = 0, specular = 0, reflection = 0;
     float roughness = 0.3, metallic = 0.1, ior = 1.6;
     size_t newStart = 0;
     string segment = "", temp;
+    bool hasFilter = false;
     
     // Since there are subsections denoted with curly braces, we have to search
     // for the '}' without a corresponding '{'. This means that it is the end
@@ -147,9 +149,12 @@ void FileParser::parseSphere(ifstream &file)
     // Remove all newlines from the string.
     segment.erase(remove(segment.begin(), segment.end(), '\n'), segment.end());
     
-    newStart = findAndSetVectorParameter(segment, center, "<", 0);
+    newStart = findAndSetVec3Parameter(segment, center, "<", 0);
     findAndSetSingleValueParameter(segment, radius, ",", newStart);
-    findAndSetVectorParameter(segment, color, "colorrgb<", 0);
+    hasFilter = findAndSetVec4Parameter(segment, rgbf, "colorrgbf<", 0);
+    if (!hasFilter) {
+        findAndSetVec3Parameter(segment, color, "colorrgb<", 0);
+    }
     findAndSetSingleValueParameter(segment, ambient, "ambient", 0);
     findAndSetSingleValueParameter(segment, diffuse, "diffuse", 0);
     findAndSetSingleValueParameter(segment, specular, "specular", 0);
@@ -158,10 +163,17 @@ void FileParser::parseSphere(ifstream &file)
     findAndSetSingleValueParameter(segment, metallic, "metallic", 0);
     findAndSetSingleValueParameter(segment, ior, "ior", 0);
     
-    shared_ptr<Sphere> sphere = make_shared<Sphere>(center, radius, color,
-                                                    ambient, diffuse, specular,
-                                                    reflection, roughness, metallic,
-                                                    ior);
+    shared_ptr<Sphere> sphere;
+    if (hasFilter) {
+        sphere = make_shared<Sphere>(center, radius, vec3(rgbf), ambient, diffuse,
+                                     specular, reflection, rgbf.w, roughness, metallic,
+                                     ior);
+    }
+    else {
+        sphere = make_shared<Sphere>(center, radius, color, ambient, diffuse, specular,
+                                     reflection, 0, roughness, metallic, ior);
+    }
+    
     objects.push_back(sphere);
 }
 
@@ -169,11 +181,13 @@ void FileParser::parsePlane(ifstream &file)
 {
     vec3 normal = vec3(0);
     vec3 color = vec3(0);
+    vec4 rgbf = vec4(0);
     float distance = 0;
     float ambient = 0, diffuse = 0, specular = 0, reflection = 0;
     float roughness = 0.3, metallic = 0.1, ior = 1.6;
     size_t newStart = 0;
     string segment = "", temp;
+    bool hasFilter = false;
     
     // Since there are subsections denoted with curly braces, we have to search
     // for the '}' without a corresponding '{'. This means that it is the end
@@ -191,9 +205,12 @@ void FileParser::parsePlane(ifstream &file)
     // Remove all newlines from the string.
     segment.erase(remove(segment.begin(), segment.end(), '\n'), segment.end());
     
-    newStart = findAndSetVectorParameter(segment, normal, "<", 0);
+    newStart = findAndSetVec3Parameter(segment, normal, "<", 0);
     findAndSetSingleValueParameter(segment, distance, ",", newStart);
-    findAndSetVectorParameter(segment, color, "colorrgb<", 0);
+    hasFilter = findAndSetVec4Parameter(segment, rgbf, "colorrgbf<", 0);
+    if (!hasFilter) {
+        findAndSetVec3Parameter(segment, color, "colorrgb<", 0);
+    }
     findAndSetSingleValueParameter(segment, ambient, "ambient", 0);
     findAndSetSingleValueParameter(segment, diffuse, "diffuse", 0);
     findAndSetSingleValueParameter(segment, specular, "specular", 0);
@@ -202,10 +219,16 @@ void FileParser::parsePlane(ifstream &file)
     findAndSetSingleValueParameter(segment, metallic, "metallic", 0);
     findAndSetSingleValueParameter(segment, ior, "ior", 0);
 
-    shared_ptr<Plane> plane = make_shared<Plane>(normal, distance, color,
-                                                 ambient, diffuse, specular,
-                                                 reflection, roughness, metallic,
-                                                 ior);
+    shared_ptr<Plane> plane;
+    if (hasFilter) {
+        plane = make_shared<Plane>(normal, distance, vec3(rgbf), ambient, diffuse,
+                                   specular, reflection, rgbf.w, roughness, metallic,
+                                   ior);
+    }
+    else {
+        plane = make_shared<Plane>(normal, distance, color, ambient, diffuse, specular,
+                                   reflection, 0, roughness, metallic, ior);
+    }
     objects.push_back(plane);
 }
 
@@ -215,10 +238,12 @@ void FileParser::parseTriangle(ifstream &file)
     vec3 v1 = vec3(0);
     vec3 v2 = vec3(0);
     vec3 color = vec3(0);
+    vec4 rgbf = vec4(0);
     float ambient = 0, diffuse = 0, specular = 0, reflection = 0;
     float roughness = 0.3, metallic = 0.1, ior = 1.6;
     size_t newStart = 0;
     string segment = "", temp;
+    bool hasFilter = false;
     
     // Since there are subsections denoted with curly braces, we have to search
     // for the '}' without a corresponding '{'. This means that it is the end
@@ -236,10 +261,13 @@ void FileParser::parseTriangle(ifstream &file)
     // Remove all newlines from the string.
     segment.erase(remove(segment.begin(), segment.end(), '\n'), segment.end());
     
-    newStart = findAndSetVectorParameter(segment, v0, "<", 0);
-    newStart = findAndSetVectorParameter(segment, v1, "<", newStart);
-    findAndSetVectorParameter(segment, v2, "<", newStart);
-    findAndSetVectorParameter(segment, color, "colorrgb<", 0);
+    newStart = findAndSetVec3Parameter(segment, v0, "<", 0);
+    newStart = findAndSetVec3Parameter(segment, v1, "<", newStart);
+    findAndSetVec3Parameter(segment, v2, "<", newStart);
+    hasFilter = findAndSetVec4Parameter(segment, rgbf, "colorrgbf<", 0);
+    if (!hasFilter) {
+        findAndSetVec3Parameter(segment, color, "colorrgb<", 0);
+    }
     findAndSetSingleValueParameter(segment, ambient, "ambient", 0);
     findAndSetSingleValueParameter(segment, diffuse, "diffuse", 0);
     findAndSetSingleValueParameter(segment, specular, "specular", 0);
@@ -248,10 +276,17 @@ void FileParser::parseTriangle(ifstream &file)
     findAndSetSingleValueParameter(segment, metallic, "metallic", 0);
     findAndSetSingleValueParameter(segment, ior, "ior", 0);
     
-    shared_ptr<Triangle> triangle = make_shared<Triangle>(v0, v1, v2, color,
-                                                          ambient, diffuse, specular,
-                                                          reflection, roughness,
-                                                          metallic, ior);
+    shared_ptr<Triangle> triangle;
+    if (hasFilter) {
+        triangle = make_shared<Triangle>(v0, v1, v2, vec3(rgbf), ambient, diffuse,
+                                         specular, reflection, rgbf.w, roughness,
+                                         metallic, ior);
+    }
+    else {
+        triangle = make_shared<Triangle>(v0, v1, v2, color, ambient, diffuse,
+                                         specular, reflection, 0, roughness,
+                                         metallic, ior);
+    }
     objects.push_back(triangle);
 }
 
@@ -271,7 +306,7 @@ void FileParser::findAndSetSingleValueParameter(const string segment, float &par
     }
 }
 
-size_t FileParser::findAndSetVectorParameter(const string segment, vec3 &parameter,
+size_t FileParser::findAndSetVec3Parameter(const string segment, vec3 &parameter,
                                              const string indicator, const size_t start)
 {
     size_t found = 0, end = 0;
@@ -299,4 +334,42 @@ size_t FileParser::findAndSetVectorParameter(const string segment, vec3 &paramet
     }
     
     return end;
+}
+
+bool FileParser::findAndSetVec4Parameter(const string segment, vec4 &parameter,
+                                         const string indicator, const size_t start)
+{
+    size_t found = 0, end = 0;
+    bool hasFilter = false;
+    string temp;
+    
+    found = segment.find(indicator, start);
+    hasFilter = (found != string::npos);
+    if (hasFilter) {
+        // Go to beginning of x value for parameter.
+        found += indicator.length();
+        end = segment.find(",", found);
+        temp = segment.substr(found, end - found);
+        parameter.x = atof(temp.c_str());
+        
+        // Go to beginning of y value for parameter.
+        found = end + 1;
+        end = segment.find(",", found);
+        temp = segment.substr(found, end - found);
+        parameter.y = atof(temp.c_str());
+        
+        // Go to beginning of z value for parameter.
+        found = end + 1;
+        end = segment.find(",", found);
+        temp = segment.substr(found, end - found);
+        parameter.z = atof(temp.c_str());
+        
+        // Go to beginning of w value for parameter.
+        found = end + 1;
+        end = segment.find(">", found);
+        temp = segment.substr(found, end - found);
+        parameter.w = atof(temp.c_str());
+    }
+    
+    return hasFilter;
 }

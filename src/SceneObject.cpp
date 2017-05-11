@@ -14,8 +14,6 @@
 #include "LightSource.hpp"
 #include "Ray.hpp"
 
-#define MAX_BOUNCES 6
-
 using namespace std;
 using namespace glm;
 
@@ -33,13 +31,14 @@ ior(1.6)
 }
 
 SceneObject::SceneObject(const vec3 &color, const float ambient, const float diffuse,
-                         const float specular, const float reflection,
+                         const float specular, const float reflection, const float filter,
                          const float roughness, const float metallic, const float ior) :
 color(color),
 ambient(ambient),
 diffuse(diffuse),
 specular(specular),
 reflection(reflection),
+filter(filter),
 roughness(roughness),
 metallic(metallic),
 ior(ior)
@@ -58,6 +57,12 @@ void SceneObject::printObjectInfo()
     printf("- Material:\n");
     printf("  - Ambient: %.4g\n", ambient);
     printf("  - Diffuse: %.4g\n", diffuse);
+    printf("  - Specular: %.4g\n", specular);
+    printf("  - Reflection: %.4g\n", reflection);
+    printf("  - Filter: %.4g\n", filter);
+    printf("  - Roughness: %.4g\n", roughness);
+    printf("  - Metallic: %.4g\n", metallic);
+    printf("  - Ior: %.4g\n", ior);
 }
 
 string SceneObject::getNormalAtPointString(const vec3 &point)

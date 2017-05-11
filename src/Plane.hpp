@@ -17,8 +17,8 @@ public:
     Plane();
     Plane(const glm::vec3 &normal, const float distance, const glm::vec3 &color,
           const float ambient, const float diffuse, const float specular,
-          const float reflection, const float roughness, const float metallic,
-          const float ior);
+          const float reflection, const float filter, const float roughness,
+          const float metallic, const float ior);
     
     bool testIntersection(const std::shared_ptr<Ray> &ray, float &t);
     

@@ -22,8 +22,8 @@ class SceneObject
 public:
     SceneObject();
     SceneObject(const glm::vec3 &color, const float ambient, const float diffuse,
-                const float specular, const float reflection, const float roughness,
-                const float metallic, const float ior);
+                const float specular, const float reflection, const float filter,
+                const float roughness, const float metallic, const float ior);
     
     virtual bool testIntersection(const std::shared_ptr<Ray> &ray, float &t);
     
@@ -32,6 +32,7 @@ public:
     float getDiffuse() const {return diffuse;}
     float getSpecular() const {return specular;}
     float getReflection() const {return reflection;}
+    float getFilter() const {return filter;}
     float getRoughness() const {return roughness;}
     float getMetallic() const {return metallic;}
     float getIOR() const {return ior;}
@@ -47,7 +48,7 @@ public:
     virtual std::string getObjectType() {return "NULL";}
 protected:
     glm::vec3 color;
-    float ambient, diffuse, specular, reflection, roughness, metallic, ior;
+    float ambient, diffuse, specular, reflection, filter, roughness, metallic, ior;
     
     const float sphereEpsilon = 0.001;
     const float epsilon = 0.0001;

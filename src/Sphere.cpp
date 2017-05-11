@@ -23,9 +23,9 @@ radius(0)
 
 Sphere::Sphere(const vec3 &center, const float radius, const vec3 &color,
                const float ambient, const float diffuse, const float specular,
-               const float reflection, const float roughness, const float metallic,
-               const float ior) :
-SceneObject(color, ambient, diffuse, specular, reflection, roughness, metallic, ior),
+               const float reflection, const float filter, const float roughness,
+               const float metallic, const float ior) :
+SceneObject(color, ambient, diffuse, specular, reflection, filter, roughness, metallic, ior),
 center(center),
 radius(radius)
 {
@@ -62,8 +62,4 @@ void Sphere::printObjectInfo()
     printf("- Center: {%.4g %.4g %.4g}\n", center.x, center.y, center.z);
     printf("- Radius: %.4g\n", radius);
     SceneObject::printObjectInfo();
-    printf("  - Specular: %.4g\n", specular);
-    printf("  - Roughness: %.4g\n", roughness);
-    printf("  - Metallic: %.4g\n", metallic);
-    printf("  - Ior: %.4g\n", ior);
 }

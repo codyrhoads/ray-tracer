@@ -23,9 +23,9 @@ distance(0)
 
 Plane::Plane(const vec3 &normal, const float distance, const vec3 &color,
              const float ambient, const float diffuse, const float specular,
-             const float reflection, const float roughness, const float metallic,
-             const float ior) :
-SceneObject(color, ambient, diffuse, specular, reflection, roughness, metallic, ior),
+             const float reflection, const float filter, const float roughness,
+             const float metallic, const float ior) :
+SceneObject(color, ambient, diffuse, specular, reflection, filter, roughness, metallic, ior),
 normal(normal),
 distance(distance)
 {

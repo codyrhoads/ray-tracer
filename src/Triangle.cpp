@@ -24,9 +24,9 @@ v2(vec3(0))
 
 Triangle::Triangle(const vec3 &v0, const vec3 &v1, const vec3 &v2,
                    const vec3 &color, const float ambient, const float diffuse,
-                   const float specular, const float reflection,
+                   const float specular, const float reflection, const float filter,
                    const float roughness, const float metallic, const float ior) :
-SceneObject(color, ambient, diffuse, specular, reflection, roughness, metallic, ior),
+SceneObject(color, ambient, diffuse, specular, reflection, filter, roughness, metallic, ior),
 v0(v0),
 v1(v1),
 v2(v2)
