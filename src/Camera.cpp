@@ -51,7 +51,7 @@ void Camera::render(const vector<shared_ptr<SceneObject>> &objects,
     int index, rgbIndex = 0;
     unsigned char *rgbData = new unsigned char[imageWidth * imageHeight * 3];
     string trace = "";
-    Shader shader = Shader(objects, lights, BRDF);
+    Shader shader = Shader(objects, lights, BRDF, false);
     
     for (int j = imageHeight - 1; j >= 0; j--) {
         for (int i = 0; i < imageWidth; i++) {
@@ -115,7 +115,7 @@ void Camera::pixelColor(const vector<shared_ptr<SceneObject>> &objects,
                         const string &BRDF)
 {
     string trace = "";
-    Shader shader = Shader(objects, lights, BRDF);
+    Shader shader = Shader(objects, lights, BRDF, false);
     
     pixelRay(pixelX, pixelY);
     
@@ -144,7 +144,7 @@ void Camera::pixelTrace(const vector<shared_ptr<SceneObject>> &objects,
                         const float pixelX, const float pixelY,
                         const string &BRDF)
 {
-    Shader shader = Shader(objects, lights, BRDF);
+    Shader shader = Shader(objects, lights, BRDF, true);
     
     setCurrRay(pixelX, pixelY);
     printf("Pixel: [%.4g, %.4g] ", pixelX, pixelY);

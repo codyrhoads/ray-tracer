@@ -24,7 +24,7 @@ public:
     Shader();
     Shader(const std::vector<std::shared_ptr<SceneObject>> &objects,
            const std::vector<std::shared_ptr<LightSource>> &lights,
-           const std::string &BRDF);
+           const std::string &BRDF, const bool isPixelTrace);
     
     glm::vec3 getShadedColor(const std::shared_ptr<Ray> &ray, const int bounces,
                              std::string &trace);
@@ -42,6 +42,7 @@ private:
     const std::vector<std::shared_ptr<SceneObject>> objects;
     const std::vector<std::shared_ptr<LightSource>> lights;
     const std::string BRDF;
+    const bool isPixelTrace;
 };
 
 #endif /* Shader_hpp */

@@ -21,17 +21,19 @@ using namespace glm;
 Shader::Shader() :
 objects(vector<shared_ptr<SceneObject>>()),
 lights(vector<shared_ptr<LightSource>>()),
-BRDF("NULL")
+BRDF("NULL"),
+isPixelTrace(false)
 {
     
 }
 
 Shader::Shader(const vector<shared_ptr<SceneObject>> &objects,
                const vector<shared_ptr<LightSource>> &lights,
-               const string &BRDF) :
+               const string &BRDF, const bool isPixelTrace) :
 objects(objects),
 lights(lights),
-BRDF(BRDF)
+BRDF(BRDF),
+isPixelTrace(isPixelTrace)
 {
     
 }
@@ -57,14 +59,16 @@ vec3 Shader::getShadedColor(const shared_ptr<Ray> &ray, const int bounces,
         localColor = findLocalColorCookTorrance(ray);
     }
     
-    for (int i = 0; i < bounces; i++) {
-        indent += "| ";
+    if (isPixelTrace) {
+        for (int i = 0; i < bounces; i++) {
+            indent += "| ";
+        }
+        trace += "\n" + indent + "|   Normal " + obj->getNormalAtPointString(ray->getIntersectionPoint());
+        trace += "\n" + indent + "|   Transformed " + ray->getRayInfo();
+        trace += "\n" + indent + "|   Ambient: " + obj->getAmbientString();
+        trace += "\n" + indent + "|   Diffuse: " + obj->getDiffuseString();
+        trace += "\n" + indent + "|   Specular: " + obj->getSpecularString();
     }
-    trace += "\n" + indent + "|   Normal " + obj->getNormalAtPointString(ray->getIntersectionPoint());
-    trace += "\n" + indent + "|   Transformed " + ray->getRayInfo();
-    trace += "\n" + indent + "|   Ambient: " + obj->getAmbientString();
-    trace += "\n" + indent + "|   Diffuse: " + obj->getDiffuseString();
-    trace += "\n" + indent + "|   Specular: " + obj->getSpecularString();
     
     if (bounces < MAX_BOUNCES) {
         if (obj->getFilter() > 0) {
@@ -186,6 +190,7 @@ vec3 Shader::findRefractedColor(const shared_ptr<Ray> &ray, const int bounces,
     vec3 refractedColor = vec3(0);
     int index = -1;
     bool enteringObj = true;
+    string indent = "";
     
     shared_ptr<SceneObject> obj = objects.at(ray->getIndexOfIntersectedObject());
     vec3 n = obj->getNormalAtPoint(ray->getIntersectionPoint());
@@ -222,27 +227,32 @@ vec3 Shader::findRefractedColor(const shared_ptr<Ray> &ray, const int bounces,
     }
     index = refractedRay->findClosestObjectIndex(objects);
     
-    string indent;
-    for (int i = 0; i < bounces; i++) {
-        indent += "| ";
+    if (isPixelTrace) {
+        for (int i = 0; i < bounces; i++) {
+            indent += "| ";
+        }
+        
+        trace += "\n|\n|\\";
+        trace += "\n" + indent + "o - Iteration type: Refraction";
+        trace += "\n" + indent + "|   " + refractedRay->getRayInfo();
     }
-    
-    trace += "\n|\n|\\";
-    trace += "\n" + indent + "o - Iteration type: Refraction";
-    trace += "\n" + indent + "|   " + refractedRay->getRayInfo();
     
     // If the refraction hits an object.
     if (index > -1) {
-        trace += "\n" + indent + "|   Hit Object ID (" + to_string(index + 1)
-        + " - " + objects.at(index)->getObjectType() + ") at T = "
-        + refractedRay->getIntersectionTimeString() + ", Intersection = "
-        + refractedRay->getIntersectionPointString();
+        if (isPixelTrace) {
+            trace += "\n" + indent + "|   Hit Object ID (" + to_string(index + 1)
+            + " - " + objects.at(index)->getObjectType() + ") at T = "
+            + refractedRay->getIntersectionTimeString() + ", Intersection = "
+            + refractedRay->getIntersectionPointString();
+        }
         
         refractedColor = getShadedColor(refractedRay, bounces, trace);
     }
     else {
-        trace += "\n" + indent + "|   No intersection.";
-        trace += "\n" + indent + "|----";
+        if (isPixelTrace) {
+            trace += "\n" + indent + "|   No intersection.";
+            trace += "\n" + indent + "|----";
+        }
     }
     
     // Calculate attenuation. We only do this while the ray is inside the obj
@@ -261,6 +271,8 @@ vec3 Shader::findReflectedColor(const shared_ptr<Ray> &ray, const int bounces,
 {
     vec3 reflectedColor = vec3(0);
     int index = -1;
+    string indent = "";
+    
     shared_ptr<SceneObject> obj = objects.at(ray->getIndexOfIntersectedObject());
     const vec3 n = obj->getNormalAtPoint(ray->getIntersectionPoint());
     const vec3 d = ray->getDirection();
@@ -277,26 +289,31 @@ vec3 Shader::findReflectedColor(const shared_ptr<Ray> &ray, const int bounces,
     }
     index = reflectedRay->findClosestObjectIndex(objects);
     
-    string indent;
-    for (int i = 0; i < bounces; i++) {
-        indent += "  ";
+    if (isPixelTrace) {
+        for (int i = 0; i < bounces; i++) {
+            indent += "  ";
+        }
+        trace += "\n|\n \\";
+        trace += "\n" + indent + "o - Iteration type: Reflection";
+        trace += "\n" + indent + "|   " + reflectedRay->getRayInfo();
     }
-    trace += "\n|\n \\";
-    trace += "\n" + indent + "o - Iteration type: Reflection";
-    trace += "\n" + indent + "|   " + reflectedRay->getRayInfo();
     
     // If the reflection hits an object.
     if (index > -1) {
-        trace += "\n|   Hit Object ID (" + to_string(index + 1) + " - "
-        + objects.at(index)->getObjectType() + ") at T = "
-        + reflectedRay->getIntersectionTimeString() + ", Intersection = "
-        + reflectedRay->getIntersectionPointString();
+        if (isPixelTrace) {
+            trace += "\n|   Hit Object ID (" + to_string(index + 1) + " - "
+            + objects.at(index)->getObjectType() + ") at T = "
+            + reflectedRay->getIntersectionTimeString() + ", Intersection = "
+            + reflectedRay->getIntersectionPointString();
+        }
         
         reflectedColor = getShadedColor(reflectedRay, bounces, trace);
     }
     else {
-        trace += "\n" + indent + "|   No intersection.";
-        trace += "\n" + indent + "|----";
+        if (isPixelTrace) {
+            trace += "\n" + indent + "|   No intersection.";
+            trace += "\n" + indent + "|----";
+        }
     }
     
     return reflectedColor;
