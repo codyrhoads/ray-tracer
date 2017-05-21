@@ -42,6 +42,8 @@ private:
                                    const std::string indicator, const size_t start);
     bool findAndSetVec4Parameter(const std::string segment, glm::vec4 &parameter,
                                  const std::string indicator, const size_t start);
+    glm::mat4 calculateInverseModelMatrix(const std::string segment);
+    size_t findIndexOfFirstTransform(const std::string segment);
     
     std::shared_ptr<Camera> camera;
     std::vector<std::shared_ptr<LightSource>> lights;

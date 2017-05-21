@@ -23,17 +23,15 @@ public:
     
     int findClosestObjectIndex(const std::vector<std::shared_ptr<SceneObject>> &objects);
     
-    void setIntersectionTime(const float newT) {t = newT;}
-    
     float getIntersectionTime() const {return t;}
     int getIndexOfIntersectedObject() const {return indexOfIntersected;}
     glm::vec3 getIntersectionPoint() const {return origin + t * direction;}
     glm::vec3 getOrigin() const {return origin;}
     glm::vec3 getDirection() const {return direction;}
     
-    std::string getRayInfo();
-    std::string getIntersectionPointString();
-    std::string getIntersectionTimeString();
+    std::string getRayInfo() const;
+    std::string getIntersectionPointString() const;
+    std::string getIntersectionTimeString() const;
 private:
     glm::vec3 origin, direction;
     float t;

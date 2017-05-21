@@ -18,18 +18,15 @@ public:
     Sphere(const glm::vec3 &center, const float radius, const glm::vec3 &color,
            const float ambient, const float diffuse, const float specular,
            const float reflection, const float filter, const float roughness,
-           const float metallic, const float ior);
+           const float metallic, const float ior, const glm::mat4 &inverseModelMatrix);
     
-    bool testIntersection(const std::shared_ptr<Ray> &ray, float &t);
+    bool testIntersection(const std::shared_ptr<Ray> &ray, float &t) const;
     
-    glm::vec3 getCenter() const {return center;}
-    float getRadius() const {return radius;}
+    glm::vec3 getNormalAtPoint(const glm::vec3 &point) const;
     
-    void printObjectInfo();
-    std::string getObjectType() {return "Sphere";}
+    void printObjectInfo() const;
+    std::string getObjectType() const {return "Sphere";}
 private:
-    glm::vec3 getNormalAtPoint(const glm::vec3 &point) const {return normalize(point - center);}
-    
     glm::vec3 center;
     float radius;
 };

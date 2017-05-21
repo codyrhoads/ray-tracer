@@ -8,12 +8,31 @@
 #include "SceneObject.hpp"
 #include "Camera.hpp"
 #include "LightSource.hpp"
+#include "OptionalArgs.h"
 
 using namespace std;
 
 enum Command {
-    RENDER, SCENEINFO, PIXELRAY, FIRSTHIT, PIXELCOLOR, PIXELTRACE
+    RENDER, SCENEINFO, PIXELRAY, FIRSTHIT, PIXELCOLOR, PRINTRAYS
 };
+
+void checkForOptionalArguments(char **argv, const int argc, const int start,
+                               OptionalArgs &optArgs)
+{
+    for (int i = start; i < argc; i++) {
+        string arg = argv[i];
+        string subArg = arg.substr(0, 4);
+        if (arg == "-fresnel") {
+            optArgs.fresnel = true;
+        }
+        else if (subArg == "-ss=") {
+            optArgs.superSampleN = atoi(arg.substr(4, arg.length() - 4).c_str());
+        }
+        else if (arg == "-altbrdf") {
+            optArgs.BRDF = "Alternate";
+        }
+    }
+}
 
 int main(int argc, char **argv)
 {
@@ -24,7 +43,10 @@ int main(int argc, char **argv)
     vector<shared_ptr<LightSource>> lights;
     vector<shared_ptr<SceneObject>> objects;
     Command command;
-    string BRDF = "Blinn-Phong";
+    OptionalArgs optArgs;
+    optArgs.fresnel = false;
+    optArgs.superSampleN = 0;
+    optArgs.BRDF = "Blinn-Phong";
     
     if (argc < 2) {
         printf("Need a command.\n");
@@ -37,9 +59,7 @@ int main(int argc, char **argv)
             printf("Not enough arguments for render.\n");
             return 0;
         }
-        if (argc > 5 && !strcmp(argv[5], "-altbrdf")) {
-            BRDF = "Alternate";
-        }
+        checkForOptionalArguments(argv, argc, 5, optArgs);
     }
     else if (!strcmp(argv[1], "sceneinfo")) {
         command = SCENEINFO;
@@ -68,19 +88,15 @@ int main(int argc, char **argv)
             printf("Not enough arguments for pixelcolor.\n");
             return 0;
         }
-        if (argc > 7 && !strcmp(argv[7], "-altbrdf")) {
-            BRDF = "Alternate";
-        }
+        checkForOptionalArguments(argv, argc, 7, optArgs);
     }
-    else if (!strcmp(argv[1], "pixeltrace")) {
-        command = PIXELTRACE;
+    else if (!strcmp(argv[1], "printrays")) {
+        command = PRINTRAYS;
         if (argc < 7) {
-            printf("Not enough arguments for pixeltrace.\n");
+            printf("Not enough arguments for printrays.\n");
             return 0;
         }
-        if (argc > 7 && !strcmp(argv[7], "-altbrdf")) {
-            BRDF = "Alternate";
-        }
+        checkForOptionalArguments(argv, argc, 7, optArgs);
     }
     else {
         printf("Unrecognized command.\n");
@@ -97,7 +113,7 @@ int main(int argc, char **argv)
     objects = parser.getObjects();
     
     if (command == RENDER) {
-        camera->render(objects, lights, BRDF);
+        camera->render(objects, lights, optArgs);
     }
     else if (command == SCENEINFO) {
         printf("Camera:\n");
@@ -134,12 +150,12 @@ int main(int argc, char **argv)
     else if (command == PIXELCOLOR) {
         // argv[5] and argv[6] are the x and y coordinates of the pixel to test,
         // respectively.
-        camera->pixelColor(objects, lights, atof(argv[5]), atof(argv[6]), BRDF);
+        camera->pixelColor(objects, lights, atof(argv[5]), atof(argv[6]), optArgs);
     }
-    else if (command == PIXELTRACE) {
+    else if (command == PRINTRAYS) {
         // argv[5] and argv[6] are the x and y coordinates of the pixel to test,
         // respectively.
-        camera->pixelTrace(objects, lights, atof(argv[5]), atof(argv[6]), BRDF);
+        camera->printRays(objects, lights, atof(argv[5]), atof(argv[6]), optArgs);
     }
     
     return 0;

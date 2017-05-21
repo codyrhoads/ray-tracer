@@ -27,7 +27,7 @@ color(color)
     
 }
 
-void LightSource::printLightInfo()
+void LightSource::printLightInfo() const
 {
     printf("- Location: {%.4g %.4g %.4g}\n", location.x, location.y, location.z);
     printf("- Color: {%.4g %.4g %.4g}\n", color.x, color.y, color.z);

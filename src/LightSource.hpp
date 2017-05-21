@@ -20,7 +20,7 @@ public:
     glm::vec3 getLocation() const {return location;}
     glm::vec3 getColor() const {return color;}
     
-    void printLightInfo();
+    void printLightInfo() const;
 private:
     glm::vec3 location;
     glm::vec3 color;

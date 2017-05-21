@@ -15,6 +15,7 @@
 #include "Shader.hpp"
 #define STB_IMAGE_WRITE_IMPLEMENTATION
 #include "stb_image_write.h"
+#include "OptionalArgs.h"
 
 using namespace std;
 using namespace glm;
@@ -46,32 +47,56 @@ void Camera::setImageSize(const int width, const int height)
 
 void Camera::render(const vector<shared_ptr<SceneObject>> &objects,
                     const vector<shared_ptr<LightSource>> &lights,
-                    const string &BRDF)
+                    const OptionalArgs &optArgs)
 {
-    int index, rgbIndex = 0;
+    int index = -1, rgbIndex = 0;
     unsigned char *rgbData = new unsigned char[imageWidth * imageHeight * 3];
     string trace = "";
-    Shader shader = Shader(objects, lights, BRDF, false);
+    Shader shader = Shader(objects, lights, optArgs, false);
     
     for (int j = imageHeight - 1; j >= 0; j--) {
         for (int i = 0; i < imageWidth; i++) {
-            setCurrRay(i, j);
-            index = currRay->findClosestObjectIndex(objects);
-            
-            if (index != -1) {
-                vec3 color = shader.getShadedColor(currRay, 0, trace);
+            // superSampleN > 0 means that we are doing super sampling
+            if (optArgs.superSampleN > 0) {
+                vec3 totalColor = vec3(0, 0, 0);
+                
+                // super sampling
+                for (int n = 0; n < optArgs.superSampleN; n++) {
+                    for (int m = 0; m < optArgs.superSampleN; m++) {
+                        setCurrRaySuperSampling(i, j, m, n, optArgs.superSampleN);
+                        index = currRay->findClosestObjectIndex(objects);
+                        
+                        if (index != -1) {
+                            vec3 color = shader.getShadedColor(currRay, 0, trace);
+                            totalColor += color;
+                        }
+                    }
+                }
+                
+                // take the average color of all the super samples
+                totalColor /= pow(optArgs.superSampleN, 2);
+                
+                // set pixel color to average object color
+                rgbData[rgbIndex++] = round(std::min(totalColor.r, 1.0f) * 255);
+                rgbData[rgbIndex++] = round(std::min(totalColor.g, 1.0f) * 255);
+                rgbData[rgbIndex++] = round(std::min(totalColor.b, 1.0f) * 255);
+            }
+            else {
+                setCurrRay(i, j);
+                index = currRay->findClosestObjectIndex(objects);
+                
+                vec3 color = vec3(0, 0, 0);
+                if (index != -1) {
+                    color = shader.getShadedColor(currRay, 0, trace);
+                }
                 
                 // set pixel color to object color
                 rgbData[rgbIndex++] = round(std::min(color.r, 1.0f) * 255);
                 rgbData[rgbIndex++] = round(std::min(color.g, 1.0f) * 255);
                 rgbData[rgbIndex++] = round(std::min(color.b, 1.0f) * 255);
             }
-            else {
-                // set pixel to default color
-                rgbData[rgbIndex++] = 0;
-                rgbData[rgbIndex++] = 0;
-                rgbData[rgbIndex++] = 0;
-            }
+            
+            index = -1;
         }
     }
     
@@ -112,10 +137,10 @@ void Camera::firstHit(const vector<shared_ptr<SceneObject>> &objects,
 void Camera::pixelColor(const vector<shared_ptr<SceneObject>> &objects,
                         const vector<shared_ptr<LightSource>> &lights,
                         const float pixelX, const float pixelY,
-                        const string &BRDF)
+                        const OptionalArgs &optArgs)
 {
     string trace = "";
-    Shader shader = Shader(objects, lights, BRDF, false);
+    Shader shader = Shader(objects, lights, optArgs, false);
     
     pixelRay(pixelX, pixelY);
     
@@ -128,7 +153,7 @@ void Camera::pixelColor(const vector<shared_ptr<SceneObject>> &objects,
         
         printf("T = %.4g\n", currRay->getIntersectionTime());
         printf("Object Type: %s\n", obj->getObjectType().c_str());
-        printf("BRDF: %s\n", BRDF.c_str());
+        printf("BRDF: %s\n", (optArgs.BRDF).c_str());
         printf("Color: (%.4g, %.4g, %.4g)\n",
                round(std::min(color.r, 1.0f) * 255),
                round(std::min(color.g, 1.0f) * 255),
@@ -139,29 +164,30 @@ void Camera::pixelColor(const vector<shared_ptr<SceneObject>> &objects,
     }
 }
 
-void Camera::pixelTrace(const vector<shared_ptr<SceneObject>> &objects,
-                        const vector<shared_ptr<LightSource>> &lights,
-                        const float pixelX, const float pixelY,
-                        const string &BRDF)
+void Camera::printRays(const vector<shared_ptr<SceneObject>> &objects,
+                       const vector<shared_ptr<LightSource>> &lights,
+                       const float pixelX, const float pixelY,
+                       const OptionalArgs &optArgs)
 {
-    Shader shader = Shader(objects, lights, BRDF, true);
+    string trace = "";
+    Shader shader = Shader(objects, lights, optArgs, true);
     
     setCurrRay(pixelX, pixelY);
-    printf("Pixel: [%.4g, %.4g] ", pixelX, pixelY);
     
     int index = currRay->findClosestObjectIndex(objects);
     
     if (index != -1) {
         vec3 color;
         shared_ptr<SceneObject> obj = objects.at(index);
-        string trace = "o - Iteration type: Primary";
-        trace += "\n|   " + currRay->getRayInfo();
-        trace += "\n|   Hit Object ID (" + to_string(index + 1) + " - " + obj->getObjectType()
-        + ") at T = " + currRay->getIntersectionTimeString() + ", Intersection = "
-        + currRay->getIntersectionPointString();
         
         color = shader.getShadedColor(currRay, 0, trace);
         
+//        trace = "  Iteration type: Primary";
+//        trace += "\n             " + currRay->getRayInfo();
+//        trace += "\n      Hit Object (ID #" + to_string(index + 1) + " - "
+//        + obj->getObjectType() + ")";
+//        trace += "\n    Intersection: " + currRay->getIntersectionPointString()
+//        + " at T = " + currRay->getIntersectionTimeString();
         printf("Color: (%.4g, %.4g, %.4g)\n",
                round(std::min(color.r, 1.0f) * 255),
                round(std::min(color.g, 1.0f) * 255),
@@ -173,7 +199,7 @@ void Camera::pixelTrace(const vector<shared_ptr<SceneObject>> &objects,
     }
 }
 
-void Camera::printCameraInfo()
+void Camera::printCameraInfo() const
 {
     printf("- Location: {%.4g %.4g %.4g}\n", location.x, location.y, location.z);
     printf("- Up: {%.4g %.4g %.4g}\n", up.x, up.y, up.z);
@@ -181,7 +207,7 @@ void Camera::printCameraInfo()
     printf("- Look at: {%.4g %.4g %.4g}\n", lookAt.x, lookAt.y, lookAt.z);
 }
 
-void Camera::setCurrRay(const float pixelX, const float pixelY)
+void Camera::setCurrRay(const int pixelX, const int pixelY)
 {
     float screenU, screenV;
     vec3 screenIntersect, dir;
@@ -191,6 +217,23 @@ void Camera::setCurrRay(const float pixelX, const float pixelY)
     
     screenIntersect = location + screenU * right + screenV * up
                       + normalize(lookAt - location);
+    dir = normalize(screenIntersect - location);
+    
+    currRay = make_shared<Ray>(location, dir);
+}
+
+void Camera::setCurrRaySuperSampling(const int pixelX, const int pixelY,
+                                     const int subPixelX, const int subPixelY,
+                                     const int numSubPixels)
+{
+    float screenU, screenV;
+    vec3 screenIntersect, dir;
+    
+    screenU = (pixelX + 0.5 + ((subPixelX + 0.5)/numSubPixels))/imageWidth - 0.5;
+    screenV = (pixelY + 0.5 + ((subPixelY + 0.5)/numSubPixels))/imageHeight - 0.5;
+    
+    screenIntersect = location + screenU * right + screenV * up
+    + normalize(lookAt - location);
     dir = normalize(screenIntersect - location);
     
     currRay = make_shared<Ray>(location, dir);

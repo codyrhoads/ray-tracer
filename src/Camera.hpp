@@ -18,6 +18,8 @@ class SceneObject;
 class Ray;
 class LightSource;
 
+struct OptionalArgs;
+
 class Camera
 {
 public:
@@ -29,27 +31,30 @@ public:
     
     void render(const std::vector<std::shared_ptr<SceneObject>> &objects,
                 const std::vector<std::shared_ptr<LightSource>> &lights,
-                const std::string &BRDF);
+                const OptionalArgs &optArgs);
     void pixelRay(const float pixelX, const float pixelY);
     void firstHit(const std::vector<std::shared_ptr<SceneObject>> &objects,
                   const float pixelX, const float pixelY);
     void pixelColor(const std::vector<std::shared_ptr<SceneObject>> &objects,
                     const std::vector<std::shared_ptr<LightSource>> &lights,
                     const float pixelX, const float pixelY,
-                    const std::string &BRDF);
-    void pixelTrace(const std::vector<std::shared_ptr<SceneObject>> &objects,
-                    const std::vector<std::shared_ptr<LightSource>> &lights,
-                    const float pixelX, const float pixelY,
-                    const std::string &BRDF);
+                    const OptionalArgs &optArgs);
+    void printRays(const std::vector<std::shared_ptr<SceneObject>> &objects,
+                   const std::vector<std::shared_ptr<LightSource>> &lights,
+                   const float pixelX, const float pixelY,
+                   const OptionalArgs &optArgs);
     
     glm::vec3 getLocation() const {return location;}
     glm::vec3 getUp() const {return up;}
     glm::vec3 getRight() const {return right;}
     glm::vec3 getLookAt() const {return lookAt;}
     
-    void printCameraInfo();
+    void printCameraInfo() const;
 private:
-    void setCurrRay(const float pixelX, const float pixelY);
+    void setCurrRay(const int pixelX, const int pixelY);
+    void setCurrRaySuperSampling(const int pixelX, const int pixelY,
+                                 const int subPixelX, const int subPixelY,
+                                 const int numSubPixels);
     
     std::shared_ptr<Ray> currRay;
     glm::vec3 location, up, right, lookAt;

@@ -18,15 +18,12 @@ public:
     Plane(const glm::vec3 &normal, const float distance, const glm::vec3 &color,
           const float ambient, const float diffuse, const float specular,
           const float reflection, const float filter, const float roughness,
-          const float metallic, const float ior);
+          const float metallic, const float ior, const glm::mat4 &inverseModelMatrix);
     
-    bool testIntersection(const std::shared_ptr<Ray> &ray, float &t);
+    bool testIntersection(const std::shared_ptr<Ray> &ray, float &t) const;
     
-    glm::vec3 getNormal() const {return normal;}
-    float getDistance() const {return distance;}
-    
-    void printObjectInfo();
-    std::string getObjectType() {return "Plane";}
+    void printObjectInfo() const;
+    std::string getObjectType() const {return "Plane";}
 private:
     glm::vec3 getNormalAtPoint(const glm::vec3 &point) const {return normal;}
     

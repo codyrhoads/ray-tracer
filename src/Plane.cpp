@@ -24,15 +24,16 @@ distance(0)
 Plane::Plane(const vec3 &normal, const float distance, const vec3 &color,
              const float ambient, const float diffuse, const float specular,
              const float reflection, const float filter, const float roughness,
-             const float metallic, const float ior) :
-SceneObject(color, ambient, diffuse, specular, reflection, filter, roughness, metallic, ior),
+             const float metallic, const float ior, const glm::mat4 &inverseModelMatrix) :
+SceneObject(color, ambient, diffuse, specular, reflection, filter, roughness, metallic,
+            ior, inverseModelMatrix),
 normal(normal),
 distance(distance)
 {
     
 }
 
-bool Plane::testIntersection(const shared_ptr<Ray> &ray, float &t)
+bool Plane::testIntersection(const shared_ptr<Ray> &ray, float &t) const
 {
     const float denominator = dot(ray->getDirection(), normal);
     
@@ -51,7 +52,7 @@ bool Plane::testIntersection(const shared_ptr<Ray> &ray, float &t)
     }
 }
 
-void Plane::printObjectInfo()
+void Plane::printObjectInfo() const
 {
     printf("- Type: Plane\n");
     printf("- Normal: {%.4g %.4g %.4g}\n", normal.x, normal.y, normal.z);

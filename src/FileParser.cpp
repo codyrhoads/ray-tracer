@@ -7,6 +7,7 @@
 //
 
 #include <algorithm>
+#include <glm/gtc/matrix_transform.hpp>
 
 #include "FileParser.hpp"
 #include "Camera.hpp"
@@ -129,6 +130,7 @@ void FileParser::parseSphere(ifstream &file)
     vec4 rgbf = vec4(0);
     float radius = 0, ambient = 0, diffuse = 0, specular = 0, reflection = 0;
     float roughness = 0.3, metallic = 0.1, ior = 1.6;
+    mat4 inverseModelMatrix = mat4(1.0f);
     size_t newStart = 0;
     string segment = "", temp;
     bool hasFilter = false;
@@ -162,16 +164,17 @@ void FileParser::parseSphere(ifstream &file)
     findAndSetSingleValueParameter(segment, roughness, "roughness", 0);
     findAndSetSingleValueParameter(segment, metallic, "metallic", 0);
     findAndSetSingleValueParameter(segment, ior, "ior", 0);
+    inverseModelMatrix = calculateInverseModelMatrix(segment);
     
     shared_ptr<Sphere> sphere;
     if (hasFilter) {
         sphere = make_shared<Sphere>(center, radius, vec3(rgbf), ambient, diffuse,
                                      specular, reflection, rgbf.w, roughness, metallic,
-                                     ior);
+                                     ior, inverseModelMatrix);
     }
     else {
         sphere = make_shared<Sphere>(center, radius, color, ambient, diffuse, specular,
-                                     reflection, 0, roughness, metallic, ior);
+                                     reflection, 0, roughness, metallic, ior, inverseModelMatrix);
     }
     
     objects.push_back(sphere);
@@ -185,6 +188,7 @@ void FileParser::parsePlane(ifstream &file)
     float distance = 0;
     float ambient = 0, diffuse = 0, specular = 0, reflection = 0;
     float roughness = 0.3, metallic = 0.1, ior = 1.6;
+    mat4 inverseModelMatrix = mat4(1.0f);
     size_t newStart = 0;
     string segment = "", temp;
     bool hasFilter = false;
@@ -218,16 +222,17 @@ void FileParser::parsePlane(ifstream &file)
     findAndSetSingleValueParameter(segment, roughness, "roughness", 0);
     findAndSetSingleValueParameter(segment, metallic, "metallic", 0);
     findAndSetSingleValueParameter(segment, ior, "ior", 0);
+    inverseModelMatrix = calculateInverseModelMatrix(segment);
 
     shared_ptr<Plane> plane;
     if (hasFilter) {
         plane = make_shared<Plane>(normal, distance, vec3(rgbf), ambient, diffuse,
                                    specular, reflection, rgbf.w, roughness, metallic,
-                                   ior);
+                                   ior, inverseModelMatrix);
     }
     else {
         plane = make_shared<Plane>(normal, distance, color, ambient, diffuse, specular,
-                                   reflection, 0, roughness, metallic, ior);
+                                   reflection, 0, roughness, metallic, ior, inverseModelMatrix);
     }
     objects.push_back(plane);
 }
@@ -241,6 +246,7 @@ void FileParser::parseTriangle(ifstream &file)
     vec4 rgbf = vec4(0);
     float ambient = 0, diffuse = 0, specular = 0, reflection = 0;
     float roughness = 0.3, metallic = 0.1, ior = 1.6;
+    mat4 inverseModelMatrix = mat4(1.0f);
     size_t newStart = 0;
     string segment = "", temp;
     bool hasFilter = false;
@@ -275,17 +281,18 @@ void FileParser::parseTriangle(ifstream &file)
     findAndSetSingleValueParameter(segment, roughness, "roughness", 0);
     findAndSetSingleValueParameter(segment, metallic, "metallic", 0);
     findAndSetSingleValueParameter(segment, ior, "ior", 0);
+    inverseModelMatrix = calculateInverseModelMatrix(segment);
     
     shared_ptr<Triangle> triangle;
     if (hasFilter) {
         triangle = make_shared<Triangle>(v0, v1, v2, vec3(rgbf), ambient, diffuse,
                                          specular, reflection, rgbf.w, roughness,
-                                         metallic, ior);
+                                         metallic, ior, inverseModelMatrix);
     }
     else {
         triangle = make_shared<Triangle>(v0, v1, v2, color, ambient, diffuse,
                                          specular, reflection, 0, roughness,
-                                         metallic, ior);
+                                         metallic, ior, inverseModelMatrix);
     }
     objects.push_back(triangle);
 }
@@ -293,7 +300,7 @@ void FileParser::parseTriangle(ifstream &file)
 void FileParser::findAndSetSingleValueParameter(const string segment, float &parameter,
                                                 const string indicator, const size_t start)
 {
-    size_t found = 0, end = 0;
+    size_t found = -1, end = -1;
     string temp;
     
     found = segment.find(indicator, start);
@@ -309,7 +316,7 @@ void FileParser::findAndSetSingleValueParameter(const string segment, float &par
 size_t FileParser::findAndSetVec3Parameter(const string segment, vec3 &parameter,
                                              const string indicator, const size_t start)
 {
-    size_t found = 0, end = 0;
+    size_t found = -1, end = -1;
     string temp;
     
     found = segment.find(indicator, start);
@@ -339,7 +346,7 @@ size_t FileParser::findAndSetVec3Parameter(const string segment, vec3 &parameter
 bool FileParser::findAndSetVec4Parameter(const string segment, vec4 &parameter,
                                          const string indicator, const size_t start)
 {
-    size_t found = 0, end = 0;
+    size_t found = -1, end = -1;
     bool hasFilter = false;
     string temp;
     
@@ -372,4 +379,66 @@ bool FileParser::findAndSetVec4Parameter(const string segment, vec4 &parameter,
     }
     
     return hasFilter;
+}
+
+mat4 FileParser::calculateInverseModelMatrix(const string segment)
+{
+    size_t end = -1, startSubSegment = -1, endSubSegment = -1;
+    vec3 scale, rotate, translate;
+    string subSegment;
+    
+    mat4 modelMatrix = mat4(1.0f);
+    
+    startSubSegment = findIndexOfFirstTransform(segment);
+    endSubSegment = segment.find(">", startSubSegment);
+    while (endSubSegment != string::npos) {
+        // Adding 1 to endSubSegment makes the subSegment include the '>' char,
+        // which is needed to make findAndSetVec3Parameter work properly.
+        endSubSegment += 1;
+        subSegment = segment.substr(startSubSegment, endSubSegment - startSubSegment);
+        
+        end = findAndSetVec3Parameter(subSegment, scale, "scale<", 0);
+        if (end != -1) {
+            modelMatrix = glm::scale(mat4(1.0f), scale) * modelMatrix;
+        }
+        else {
+            end = findAndSetVec3Parameter(subSegment, rotate, "rotate<", 0);
+            if (end != -1) {
+                mat4 rotation;
+                rotation = glm::rotate(mat4(1.0f), radians(rotate.z), vec3(0, 0, 1)) * rotation;
+                rotation = glm::rotate(mat4(1.0f), radians(rotate.y), vec3(0, 1, 0)) * rotation;
+                rotation = glm::rotate(mat4(1.0f), radians(rotate.x), vec3(1, 0, 0)) * rotation;
+                modelMatrix = rotation * modelMatrix;
+            }
+            else {
+                end = findAndSetVec3Parameter(subSegment, translate, "translate<", 0);
+                if (end != -1) {
+                    modelMatrix = glm::translate(mat4(1.0f), translate) * modelMatrix;
+                }
+                else {
+                    printf("Error: invalid povray command encountered.");
+                }
+            }
+        }
+        
+        startSubSegment = endSubSegment;
+        endSubSegment = segment.find(">", startSubSegment);
+    }
+    
+    return glm::inverse(modelMatrix);
+}
+
+size_t FileParser::findIndexOfFirstTransform(const string segment)
+{
+    size_t rotate = -1, scale = -1, translate = -1, result = numeric_limits<size_t>::max();
+    
+    rotate = segment.find("rotate", 0);
+    scale = segment.find("scale", 0);
+    translate = segment.find("translate", 0);
+    
+    result = std::min(result, rotate);
+    result = std::min(result, scale);
+    result = std::min(result, translate);
+    
+    return result;
 }

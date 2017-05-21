@@ -25,8 +25,10 @@ v2(vec3(0))
 Triangle::Triangle(const vec3 &v0, const vec3 &v1, const vec3 &v2,
                    const vec3 &color, const float ambient, const float diffuse,
                    const float specular, const float reflection, const float filter,
-                   const float roughness, const float metallic, const float ior) :
-SceneObject(color, ambient, diffuse, specular, reflection, filter, roughness, metallic, ior),
+                   const float roughness, const float metallic, const float ior,
+                   const mat4 &inverseModelMatrix) :
+SceneObject(color, ambient, diffuse, specular, reflection, filter, roughness, metallic,
+            ior, inverseModelMatrix),
 v0(v0),
 v1(v1),
 v2(v2)
@@ -34,7 +36,7 @@ v2(v2)
     
 }
 
-bool Triangle::testIntersection(const shared_ptr<Ray> &ray, float &t)
+bool Triangle::testIntersection(const shared_ptr<Ray> &ray, float &t) const
 {
     // v0 = a, v1 = b, v2 = c
     const float Xa_minus_Px = v0.x - ray->getOrigin().x;
@@ -101,7 +103,7 @@ bool Triangle::testIntersection(const shared_ptr<Ray> &ray, float &t)
     return true;
 }
 
-void Triangle::printObjectInfo()
+void Triangle::printObjectInfo() const
 {
     printf("- Type: Triangle\n");
     printf("- Vertex 0: {%.4g %.4g %.4g}\n", v0.x, v0.y, v0.z);

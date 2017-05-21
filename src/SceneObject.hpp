@@ -23,9 +23,10 @@ public:
     SceneObject();
     SceneObject(const glm::vec3 &color, const float ambient, const float diffuse,
                 const float specular, const float reflection, const float filter,
-                const float roughness, const float metallic, const float ior);
+                const float roughness, const float metallic, const float ior,
+                const glm::mat4 &inverseModelMatrix);
     
-    virtual bool testIntersection(const std::shared_ptr<Ray> &ray, float &t);
+    virtual bool testIntersection(const std::shared_ptr<Ray> &ray, float &t) const;
     
     glm::vec3 getColor() const {return color;}
     float getAmbient() const {return ambient;}
@@ -36,18 +37,20 @@ public:
     float getRoughness() const {return roughness;}
     float getMetallic() const {return metallic;}
     float getIOR() const {return ior;}
+    glm::mat4 getInverseModelMatrix() const {return inverseModelMatrix;}
     
     virtual glm::vec3 getNormalAtPoint(const glm::vec3 &point) const {return glm::vec3(0);}
     
-    virtual void printObjectInfo();
-    virtual std::string getNormalAtPointString(const glm::vec3 &point);
+    virtual void printObjectInfo() const;
+    virtual std::string getNormalAtPointString(const glm::vec3 &point) const;
     std::string getAmbientString() const;
     std::string getDiffuseString() const;
     std::string getSpecularString() const;
-    virtual std::string getObjectType() {return "NULL";}
+    virtual std::string getObjectType() const {return "NULL";}
 protected:
     glm::vec3 color;
     float ambient, diffuse, specular, reflection, filter, roughness, metallic, ior;
+    glm::mat4 inverseModelMatrix;
     
     const float sphereEpsilon = 0.001;
     const float epsilon = 0.0001;

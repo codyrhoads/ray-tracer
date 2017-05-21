@@ -14,6 +14,8 @@
 #include <string>
 #include <glm/gtc/type_ptr.hpp>
 
+#include "OptionalArgs.h"
+
 class SceneObject;
 class LightSource;
 class Ray;
@@ -24,16 +26,16 @@ public:
     Shader();
     Shader(const std::vector<std::shared_ptr<SceneObject>> &objects,
            const std::vector<std::shared_ptr<LightSource>> &lights,
-           const std::string &BRDF, const bool isPixelTrace);
+           const OptionalArgs &optArgs, const bool isPrintRays);
     
     glm::vec3 getShadedColor(const std::shared_ptr<Ray> &ray, const int bounces,
                              std::string &trace);
 private:
     glm::vec3 findLocalColorBlinnPhong(const std::shared_ptr<Ray> &ray);
     glm::vec3 findLocalColorCookTorrance(const std::shared_ptr<Ray> &ray);
-    glm::vec3 findReflectedColor(const std::shared_ptr<Ray> &ray, const int bounces,
-                                 std::string &trace);
     glm::vec3 findRefractedColor(const std::shared_ptr<Ray> &ray, const int bounces,
+                                 std::string &trace);
+    glm::vec3 findReflectedColor(const std::shared_ptr<Ray> &ray, const int bounces,
                                  std::string &trace);
     static float schlicksApproximation(const float ior, const glm::vec3 &normal,
                                        const glm::vec3 &view);
@@ -41,8 +43,8 @@ private:
     
     const std::vector<std::shared_ptr<SceneObject>> objects;
     const std::vector<std::shared_ptr<LightSource>> lights;
-    const std::string BRDF;
-    const bool isPixelTrace;
+    const OptionalArgs optArgs;
+    const bool isPrintRays;
 };
 
 #endif /* Shader_hpp */
