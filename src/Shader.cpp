@@ -86,8 +86,13 @@ vec3 Shader::getShadedColor(const shared_ptr<Ray> &ray, const int bounces,
     
     if (isPrintRays) {
         ostringstream info;
-        vec3 transformedRayOrigin = vec3(obj->getInverseModelMatrix() * vec4(ray->getOrigin(), 1.0));
-        vec3 transformedRayDirection = vec3(obj->getInverseModelMatrix() * vec4(ray->getDirection(), 0.0));
+        const vec3 transformedRayOrigin = vec3(obj->getInverseModelMatrix() * vec4(ray->getOrigin(), 1.0));
+        const vec3 transformedRayDirection = vec3(obj->getInverseModelMatrix() * vec4(ray->getDirection(), 0.0));
+        const vec3 ambient = localContribution * iv.ambient;
+        const vec3 diffuse = localContribution * iv.diffuse;
+        const vec3 specular = localContribution * iv.specular;
+        const vec3 reflect = reflectionContribution * reflectedColor;
+        const vec3 refract = refractionContribution * refractedColor;
         
         info << fixed << setprecision(4) <<
         "\n             Ray: " << ray->getRayInfo() <<
@@ -100,13 +105,11 @@ vec3 Shader::getShadedColor(const shared_ptr<Ray> &ray, const int bounces,
             << ray->getIntersectionTime() <<
         "\n          Normal: {" << N.x << " " << N.y << " " << N.z << "}" <<
         "\n     Final Color: {" << finalColor.x << " " << finalColor.y << " " << finalColor.z << "}" <<
-        "\n         Ambient: {" << (iv.ambient).x << " " << (iv.ambient).y << " " << (iv.ambient).z << "}" <<
-        "\n         Diffuse: {" << (iv.diffuse).x << " " << (iv.diffuse).y << " " << (iv.diffuse).z << "}" <<
-        "\n        Specular: {" << (iv.specular).x << " " << (iv.specular).y << " " << (iv.specular).z << "}" <<
-        "\n      Reflection: {" << reflectedColor.x << " " << reflectedColor.y << " "
-            << reflectedColor.z << "}" <<
-        "\n      Refraction: {" << refractedColor.x << " " << refractedColor.y
-            << " " << refractedColor.z << "}" <<
+        "\n         Ambient: {" << ambient.x << " " << ambient.y << " " << ambient.z << "}" <<
+        "\n         Diffuse: {" << diffuse.x << " " << diffuse.y << " " << diffuse.z << "}" <<
+        "\n        Specular: {" << specular.x << " " << specular.y << " " << specular.z << "}" <<
+        "\n      Reflection: {" << reflect.x << " " << reflect.y << " " << reflect.z << "}" <<
+        "\n      Refraction: {" << refract.x << " " << refract.y << " " << refract.z << "}" <<
         "\n   Contributions: " << localContribution << " Local, " << reflectionContribution << " Reflection, "
             << refractionContribution << " Transmission";
         
@@ -259,14 +262,14 @@ vec3 Shader::findRefractedColor(const shared_ptr<Ray> &ray, const int bounces,
         refractedColor *= attenuation;
     }
     
-    if (isPrintRays) {
-        if (enteringObj) {
-            trace = "\n      Extra Info: into-object" + trace;
-        }
-        else {
-            trace = "\n      Extra Info: into-air" + trace;
-        }
-    }
+//    if (isPrintRays) {
+//        if (enteringObj) {
+//            trace = "\n      Extra Info: into-object" + trace;
+//        }
+//        else {
+//            trace = "\n      Extra Info: into-air" + trace;
+//        }
+//    }
     
     return refractedColor;
 }

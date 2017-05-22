@@ -226,8 +226,8 @@ void Camera::setCurrRaySuperSampling(const int pixelX, const int pixelY,
     float screenU, screenV;
     vec3 screenIntersect, dir;
     
-    screenU = (pixelX + 0.5 + ((subPixelX + 0.5)/numSubPixels))/imageWidth - 0.5;
-    screenV = (pixelY + 0.5 + ((subPixelY + 0.5)/numSubPixels))/imageHeight - 0.5;
+    screenU = (pixelX + ((subPixelX + 0.5)/numSubPixels))/imageWidth - 0.5;
+    screenV = (pixelY + ((subPixelY + 0.5)/numSubPixels))/imageHeight - 0.5;
     
     screenIntersect = location + screenU * right + screenV * up
     + normalize(lookAt - location);
