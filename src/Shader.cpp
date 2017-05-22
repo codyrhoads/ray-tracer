@@ -60,20 +60,18 @@ vec3 Shader::getShadedColor(const shared_ptr<Ray> &ray, const int bounces,
         localColor = findLocalColorCookTorrance(ray);
     }
     
+    float fresnelReflectance = 0;
     if (bounces < MAX_BOUNCES) {
         if (obj->getFilter() > 0) {
             refractedColor = findRefractedColor(ray, bounces + 1, trace);
-            
         }
-        if (obj->getReflection() > 0) {
+        if (optArgs.fresnel) {
+            fresnelReflectance = schlicksApproximation(obj->getIOR(), N, -ray->getDirection());
+        }
+        if (obj->getReflection() > 0 || fresnelReflectance > 0) {
             reflectedColor = obj->getColor() * findReflectedColor(ray, bounces + 1,
                                                                   trace);
         }
-    }
-    
-    float fresnelReflectance = 0;
-    if (optArgs.fresnel) {
-        fresnelReflectance = schlicksApproximation(obj->getIOR(), N, -ray->getDirection());
     }
     
     const float localContribution = (1 - obj->getFilter()) * (1 - obj->getReflection());

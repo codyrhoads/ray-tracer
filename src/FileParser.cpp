@@ -416,7 +416,8 @@ mat4 FileParser::calculateInverseModelMatrix(const string segment)
                     modelMatrix = glm::translate(mat4(1.0f), translate) * modelMatrix;
                 }
                 else {
-                    printf("Error: invalid povray command encountered.");
+                    printf("Error: invalid povray command encountered.\n");
+                    break;
                 }
             }
         }
