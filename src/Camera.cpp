@@ -111,7 +111,6 @@ void Camera::pixelRay(const float pixelX, const float pixelY)
     setCurrRay(pixelX, pixelY);
     
     printf("Pixel: [%.4g, %.4g] ", pixelX, pixelY);
-    //currRay->printRayInfo();
     printf("%s\n", currRay->getRayInfo().c_str());
 }
 
@@ -182,17 +181,15 @@ void Camera::printRays(const vector<shared_ptr<SceneObject>> &objects,
         
         color = shader.getShadedColor(currRay, 0, trace);
         
-//        trace = "  Iteration type: Primary";
-//        trace += "\n             " + currRay->getRayInfo();
-//        trace += "\n      Hit Object (ID #" + to_string(index + 1) + " - "
-//        + obj->getObjectType() + ")";
-//        trace += "\n    Intersection: " + currRay->getIntersectionPointString()
-//        + " at T = " + currRay->getIntersectionTimeString();
+        printf("Pixel: [%.4g, %.4g] ", pixelX, pixelY);
         printf("Color: (%.4g, %.4g, %.4g)\n",
                round(std::min(color.r, 1.0f) * 255),
                round(std::min(color.g, 1.0f) * 255),
                round(std::min(color.b, 1.0f) * 255));
+        printf("----");
+        printf("\n  Iteration type: Primary");
         printf("%s\n", trace.c_str());
+        printf("\n\n--------------------------------------------------------------------------------\n");
     }
     else {
         printf("No Hit\n");

@@ -54,15 +54,9 @@ int Ray::findClosestObjectIndex(const vector<shared_ptr<SceneObject>> &objects)
 string Ray::getRayInfo() const
 {
     ostringstream info;
-    info << setprecision(4) << "Ray: {" << origin.x << " " << origin.y << " " << origin.z
-         << "} -> {" << direction.x << " " << direction.y << " " << direction.z << "}";
-    return info.str();
-}
-
-string Ray::getIntersectionTimeString() const
-{
-    ostringstream info;
-    info << setprecision(4) << t;
+    info << fixed << setprecision(4) << "{" << origin.x << " " << origin.y << " "
+         << origin.z << "} -> {" << direction.x << " " << direction.y << " "
+         << direction.z << "}";
     return info.str();
 }
 
@@ -70,7 +64,7 @@ string Ray::getIntersectionPointString() const
 {
     ostringstream info;
     vec3 intersection = getIntersectionPoint();
-    info << setprecision(4) << "{" << intersection.x << " " << intersection.y
-         << " " << intersection.z << "}";
+    info << fixed << setprecision(4) << "{" << intersection.x << " "
+         << intersection.y << " " << intersection.z << "}";
     return info.str();
 }

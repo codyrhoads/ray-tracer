@@ -74,27 +74,3 @@ string SceneObject::getNormalAtPointString(const vec3 &point) const
     info << fixed << setprecision(4) << "{" << normal.x << " " << normal.y << " " << normal.z << "}";
     return info.str();
 }
-
-string SceneObject::getAmbientString() const
-{
-    ostringstream info;
-    vec3 val = color * ambient;
-    info << fixed << setprecision(4) << val.x << " " << val.y << " " << val.z;
-    return info.str();
-}
-
-string SceneObject::getDiffuseString() const
-{
-    ostringstream info;
-    vec3 val = color * diffuse;
-    info << fixed << setprecision(4) << val.x << " " << val.y << " " << val.z;
-    return info.str();
-}
-
-string SceneObject::getSpecularString() const
-{
-    ostringstream info;
-    vec3 val = color * specular;
-    info << fixed << setprecision(4) << val.x << " " << val.y << " " << val.z;
-    return info.str();
-}

@@ -43,9 +43,6 @@ public:
     
     virtual void printObjectInfo() const;
     virtual std::string getNormalAtPointString(const glm::vec3 &point) const;
-    std::string getAmbientString() const;
-    std::string getDiffuseString() const;
-    std::string getSpecularString() const;
     virtual std::string getObjectType() const {return "NULL";}
 protected:
     glm::vec3 color;

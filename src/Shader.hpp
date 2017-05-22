@@ -20,6 +20,20 @@ class SceneObject;
 class LightSource;
 class Ray;
 
+struct IlluminationValues
+{
+    glm::vec3 ambient;
+    glm::vec3 diffuse;
+    glm::vec3 specular;
+    
+    IlluminationValues()
+    {
+        ambient = glm::vec3(0);
+        diffuse = glm::vec3(0);
+        specular = glm::vec3(0);
+    }
+};
+
 class Shader
 {
 public:
@@ -31,7 +45,8 @@ public:
     glm::vec3 getShadedColor(const std::shared_ptr<Ray> &ray, const int bounces,
                              std::string &trace);
 private:
-    glm::vec3 findLocalColorBlinnPhong(const std::shared_ptr<Ray> &ray);
+    glm::vec3 findLocalColorBlinnPhong(const std::shared_ptr<Ray> &ray,
+                                       IlluminationValues &iv);
     glm::vec3 findLocalColorCookTorrance(const std::shared_ptr<Ray> &ray);
     glm::vec3 findRefractedColor(const std::shared_ptr<Ray> &ray, const int bounces,
                                  std::string &trace);

@@ -45,6 +45,7 @@ vec3 Shader::getShadedColor(const shared_ptr<Ray> &ray, const int bounces,
 {
     vec3 localColor = vec3(0), reflectedColor = vec3(0), refractedColor = vec3(0);
     shared_ptr<SceneObject> obj = objects.at(ray->getIndexOfIntersectedObject());
+    IlluminationValues iv = IlluminationValues();
     
     vec3 N = obj->getNormalAtPoint(ray->getIntersectionPoint());
     
@@ -54,7 +55,7 @@ vec3 Shader::getShadedColor(const shared_ptr<Ray> &ray, const int bounces,
     }
     
     if (optArgs.BRDF == "Blinn-Phong") {
-        localColor = findLocalColorBlinnPhong(ray);
+        localColor = findLocalColorBlinnPhong(ray, iv);
     }
     else {
         localColor = findLocalColorCookTorrance(ray);
@@ -83,38 +84,49 @@ vec3 Shader::getShadedColor(const shared_ptr<Ray> &ray, const int bounces,
                             reflectionContribution * reflectedColor +
                             refractionContribution * refractedColor;
     
-    // TODO: FIND A LESS FRUSTRATING WAY TO DO THIS. IT'S DIFFICULT TO POSITION
-    // ALL THE INFO IN THE SAME WAY DUE TO THE WAY MY PROGRAM WORKS
-//    if (isPrintRays) {
-//        ostringstream info;
-//        info << fixed << setprecision(4) << refractionContribution;
-//        trace = info.str() + " Transmission " + trace;
-//        info.str("");
-//        info << fixed << setprecision(4) << reflectionContribution;
-//        trace = info.str() + " Reflection, " + trace;
-//        info.str("");
-//        info << fixed << setprecision(4) << localContribution;
-//        trace = "\n   Contributions: " + info.str() + " Local, " + trace;
-//        info.str("");
-//        info << fixed << setprecision(4) << refractedColor.x << " " << refractedColor.y
-//             << " " << refractedColor.z;
-//        trace = "\n      Refraction: {" + info.str() + "}" + trace;
-//        info.str("");
-//        info << fixed << setprecision(4) << reflectedColor.x << " " << reflectedColor.y
-//             << " " << reflectedColor.z;
-//        trace = "\n      Reflection: {" + info.str() + "}" + trace;
-//        info.str("");
-//        trace = "\n        Specular: {" + obj->getSpecularString() + "}" + trace;
-//        trace = "\n         Diffuse: {" + obj->getDiffuseString() + "}" + trace;
-//        trace = "\n         Ambient: {" + obj->getAmbientString() + "}" + trace;
-//    }
+    if (isPrintRays) {
+        ostringstream info;
+        vec3 transformedRayOrigin = vec3(obj->getInverseModelMatrix() * vec4(ray->getOrigin(), 1.0));
+        vec3 transformedRayDirection = vec3(obj->getInverseModelMatrix() * vec4(ray->getDirection(), 0.0));
+        
+        info << fixed << setprecision(4) <<
+        "\n             Ray: " << ray->getRayInfo() <<
+        "\n Transformed Ray: {" << transformedRayOrigin.x << " " << transformedRayOrigin.y << " "
+            << transformedRayOrigin.z << "} -> {" << transformedRayDirection.x << " "
+            << transformedRayDirection.y << " " << transformedRayDirection.z << "}" <<
+        "\n      Hit Object: (ID #" << ray->getIndexOfIntersectedObject() + 1 << " - "
+            << obj->getObjectType() << ")" <<
+        "\n    Intersection: " << ray->getIntersectionPointString() << " at T = "
+            << ray->getIntersectionTime() <<
+        "\n          Normal: {" << N.x << " " << N.y << " " << N.z << "}" <<
+        "\n     Final Color: {" << finalColor.x << " " << finalColor.y << " " << finalColor.z << "}" <<
+        "\n         Ambient: {" << (iv.ambient).x << " " << (iv.ambient).y << " " << (iv.ambient).z << "}" <<
+        "\n         Diffuse: {" << (iv.diffuse).x << " " << (iv.diffuse).y << " " << (iv.diffuse).z << "}" <<
+        "\n        Specular: {" << (iv.specular).x << " " << (iv.specular).y << " " << (iv.specular).z << "}" <<
+        "\n      Reflection: {" << reflectedColor.x << " " << reflectedColor.y << " "
+            << reflectedColor.z << "}" <<
+        "\n      Refraction: {" << refractedColor.x << " " << refractedColor.y
+            << " " << refractedColor.z << "}" <<
+        "\n   Contributions: " << localContribution << " Local, " << reflectionContribution << " Reflection, "
+            << refractionContribution << " Transmission";
+        
+        trace = info.str() + trace;
+//        
+//        if (enteringObj) {
+//            trace = "\n      Extra Info: into-object" + trace;
+//        }
+//        else {
+//            trace = "\n      Extra Info: into-air" + trace;
+//        }
+    }
     
     return finalColor;
 }
 
-vec3 Shader::findLocalColorBlinnPhong(const shared_ptr<Ray> &ray)
+vec3 Shader::findLocalColorBlinnPhong(const shared_ptr<Ray> &ray,
+                                      IlluminationValues &iv)
 {
-    vec3 colorSum = vec3(0);
+    vec3 colorSum = vec3(0), totalDiffuse = vec3(0), totalSpecular = vec3(0);
     shared_ptr<SceneObject> obj = objects.at(ray->getIndexOfIntersectedObject());
     const vec3 ka = obj->getColor() * obj->getAmbient();
     const vec3 kd = obj->getColor() * obj->getDiffuse();
@@ -140,8 +152,14 @@ vec3 Shader::findLocalColorBlinnPhong(const shared_ptr<Ray> &ray)
             const vec3 rs = ks * pow(std::max(0.0f, dot(H, N)), power);
             
             colorSum += lights.at(i)->getColor() * (rd + rs);
+            totalDiffuse += lights.at(i)->getColor() * rd;
+            totalSpecular += lights.at(i)->getColor() * rs;
         }
     }
+    
+    iv.ambient = ka;
+    iv.diffuse = totalDiffuse;
+    iv.specular = totalSpecular;
     
     return ka + colorSum;
 }
@@ -241,14 +259,14 @@ vec3 Shader::findRefractedColor(const shared_ptr<Ray> &ray, const int bounces,
         refractedColor *= attenuation;
     }
     
-//    if (isPrintRays) {
-//        if (enteringObj) {
-//            trace = "\n      Extra Info: into-object" + trace;
-//        }
-//        else {
-//            trace = "\n      Extra Info: into-air" + trace;
-//        }
-//    }
+    if (isPrintRays) {
+        if (enteringObj) {
+            trace = "\n      Extra Info: into-object" + trace;
+        }
+        else {
+            trace = "\n      Extra Info: into-air" + trace;
+        }
+    }
     
     return refractedColor;
 }

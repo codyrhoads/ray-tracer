@@ -31,7 +31,6 @@ public:
     
     std::string getRayInfo() const;
     std::string getIntersectionPointString() const;
-    std::string getIntersectionTimeString() const;
 private:
     glm::vec3 origin, direction;
     float t;

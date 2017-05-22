@@ -11,7 +11,8 @@
 
 #include <string>
 
-struct OptionalArgs {
+struct OptionalArgs
+{
     bool fresnel;
     int superSampleN;
     std::string BRDF;
