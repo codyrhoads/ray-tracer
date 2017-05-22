@@ -15,7 +15,7 @@
 #include "Ray.hpp"
 
 #define MAX_BOUNCES 6
-#define EPSILON 0.001f
+#define EPSILON 0.005f
 
 using namespace std;
 using namespace glm;
