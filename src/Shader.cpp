@@ -15,7 +15,6 @@
 #include "Ray.hpp"
 
 #define MAX_BOUNCES 6
-//#define SPHERE_EPSILON 0.001f
 #define EPSILON 0.001f
 
 using namespace std;
@@ -130,12 +129,6 @@ vec3 Shader::findLocalColorBlinnPhong(const shared_ptr<Ray> &ray)
         const vec3 L = normalize(lights.at(i)->getLocation() - ray->getIntersectionPoint());
         
         shared_ptr<Ray> shadowTestRay = make_shared<Ray>(ray->getIntersectionPoint() + EPSILON * L, L);
-//        if (obj->getObjectType() == "Sphere") {
-//            shadowTestRay = make_shared<Ray>(ray->getIntersectionPoint() + SPHERE_EPSILON * L, L);
-//        }
-//        else {
-//            shadowTestRay = make_shared<Ray>(ray->getIntersectionPoint() + EPSILON * L, L);
-//        }
         index = shadowTestRay->findClosestObjectIndex(objects);
         
         const float lightT = dot(normalize(shadowTestRay->getDirection()),
@@ -169,12 +162,6 @@ vec3 Shader::findLocalColorCookTorrance(const shared_ptr<Ray> &ray)
         const vec3 L = normalize(lights.at(i)->getLocation() - ray->getIntersectionPoint());
         
         shared_ptr<Ray> shadowTestRay = make_shared<Ray>(ray->getIntersectionPoint() + EPSILON * L, L);
-//        if (obj->getObjectType() == "Sphere") {
-//            shadowTestRay = make_shared<Ray>(ray->getIntersectionPoint() + SPHERE_EPSILON * L, L);
-//        }
-//        else {
-//            shadowTestRay = make_shared<Ray>(ray->getIntersectionPoint() + EPSILON * L, L);
-//        }
         index = shadowTestRay->findClosestObjectIndex(objects);
         
         const float lightT = dot(normalize(shadowTestRay->getDirection()),
@@ -239,15 +226,7 @@ vec3 Shader::findRefractedColor(const shared_ptr<Ray> &ray, const int bounces,
     const vec3 refractedDirection = n1_divide_n2 * (d - d_dot_n * n) - n * sqroot;
     
     shared_ptr<Ray> refractedRay = make_shared<Ray>(ray->getIntersectionPoint() + refractedDirection * EPSILON,
-                                                    refractedDirection);;
-//    if (obj->getObjectType() == "Sphere") {
-//        refractedRay = make_shared<Ray>(ray->getIntersectionPoint() + refractedDirection * SPHERE_EPSILON,
-//                                        refractedDirection);
-//    }
-//    else {
-//        refractedRay = make_shared<Ray>(ray->getIntersectionPoint() + refractedDirection * EPSILON,
-//                                        refractedDirection);
-//    }
+                                                    refractedDirection);
     index = refractedRay->findClosestObjectIndex(objects);
     
     // If the refraction hits an object.
@@ -289,14 +268,6 @@ vec3 Shader::findReflectedColor(const shared_ptr<Ray> &ray, const int bounces,
     
     shared_ptr<Ray> reflectedRay = make_shared<Ray>(ray->getIntersectionPoint() + reflectedDirection * EPSILON,
                                                     reflectedDirection);
-//    if (obj->getObjectType() == "Sphere") {
-//        reflectedRay = make_shared<Ray>(ray->getIntersectionPoint() + reflectedDirection * EPSILON,
-//                                        reflectedDirection);
-//    }
-//    else {
-//        reflectedRay = make_shared<Ray>(ray->getIntersectionPoint() + reflectedDirection * EPSILON,
-//                                        reflectedDirection);
-//    }
     index = reflectedRay->findClosestObjectIndex(objects);
     
     // If the reflection hits an object.

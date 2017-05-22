@@ -71,7 +71,7 @@ void Sphere::printObjectInfo() const
 
 vec3 Sphere::getNormalAtPoint(const vec3 &point) const
 {
-    vec3 pointObjSpace = inverseModelMatrix * vec4(point, 1.0);
-    mat4 transposedInverseModelMat = transpose(inverseModelMatrix);
-    return normalize(transposedInverseModelMat * vec4(pointObjSpace - center, 0.0));
+    vec3 pointObjSpace = vec3(inverseModelMatrix * vec4(point, 1.0));
+    mat4 transposedInverseModelMat = glm::transpose(inverseModelMatrix);
+    return normalize(vec3(transposedInverseModelMat * vec4(pointObjSpace - center, 0.0)));
 }
