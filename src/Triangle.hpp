@@ -11,17 +11,17 @@
 
 #include "SceneObject.hpp"
 
-class Triangle : public SceneObject
+class Triangle : public SceneObject, public std::enable_shared_from_this<Triangle>
 {
 public:
     Triangle();
-    Triangle(const glm::vec3 &v0, const glm::vec3 &v1, const glm::vec3 &v2,
+    Triangle(const int ID, const glm::vec3 &v0, const glm::vec3 &v1, const glm::vec3 &v2,
              const glm::vec3 &color, const float ambient, const float diffuse,
              const float specular, const float reflection, const float filter,
              const float roughness, const float metallic, const float ior,
              const glm::mat4 &inverseModelMatrix);
     
-    bool testIntersection(const std::shared_ptr<Ray> &ray, float &t) const;
+    IntersectionResults findIntersection(const std::shared_ptr<Ray> &ray);
     
     void printObjectInfo() const;
     std::string getObjectType() const {return "Triangle";}

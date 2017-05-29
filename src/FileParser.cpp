@@ -12,9 +12,10 @@
 #include "FileParser.hpp"
 #include "Camera.hpp"
 #include "LightSource.hpp"
-#include "Sphere.hpp"
 #include "Plane.hpp"
+#include "Sphere.hpp"
 #include "Triangle.hpp"
+#include "BVHNode.hpp"
 
 using namespace std;
 using namespace glm;
@@ -27,10 +28,11 @@ objects(vector<shared_ptr<SceneObject>>())
     
 }
 
-void FileParser::parse(const string &filename)
+void FileParser::parse(const string &filename, const bool useBVH)
 {
     string segment;
     ifstream file;
+    int ID = 1;
     
     file.open(filename);
     
@@ -49,26 +51,28 @@ void FileParser::parse(const string &filename)
         if (segment.find("camera") != string::npos) {
             parseCamera(file);
         }
-        
         /* PARSING LIGHT SOURCE */
-        if (segment.find("light_source") != string::npos) {
+        else if (segment.find("light_source") != string::npos) {
             parseLight(file);
         }
-        
+        /* PARSING PLANE OBJECT */
+        else if (segment.find("plane") != string::npos) {
+            parsePlane(file, ID++);
+        }
         /* PARSING SPHERE OBJECT */
         if (segment.find("sphere") != string::npos) {
-            parseSphere(file);
+            parseSphere(file, ID++, useBVH);
         }
-        
-        /* PARSING PLANE OBJECT */
-        if (segment.find("plane") != string::npos) {
-            parsePlane(file);
-        }
-        
         /* PARSING TRIANGLE OBJECT */
-        if (segment.find("triangle") != string::npos) {
-            parseTriangle(file);
+        else if (segment.find("triangle") != string::npos) {
+            parseTriangle(file, ID++, useBVH);
         }
+    }
+    
+    if (useBVH) {
+        shared_ptr<BVHNode> BVHroot = make_shared<BVHNode>();
+        BVHroot->recursiveBuildTree(nonPlanes, 0);
+        objects.push_back(BVHroot);
     }
     
     file.close();
@@ -87,10 +91,7 @@ void FileParser::parseCamera(ifstream &file)
     // camera object. Segment now contains all of the information for the camera.
     getline(file, segment, '}');
     
-    // Remove all whitespace from the string.
-    segment.erase(remove(segment.begin(), segment.end(), ' '), segment.end());
-    // Remove all newlines from the string.
-    segment.erase(remove(segment.begin(), segment.end(), '\n'), segment.end());
+    removeNewlinesAndWhitespace(segment);
     
     findAndSetVec3Parameter(segment, location, "location<", 0);
     findAndSetVec3Parameter(segment, up, "up<", 0);
@@ -111,10 +112,7 @@ void FileParser::parseLight(ifstream &file)
     // information for the current light source.
     getline(file, segment, '}');
     
-    // Remove all whitespace from the string.
-    segment.erase(remove(segment.begin(), segment.end(), ' '), segment.end());
-    // Remove all newlines from the string.
-    segment.erase(remove(segment.begin(), segment.end(), '\n'), segment.end());
+    removeNewlinesAndWhitespace(segment);
     
     findAndSetVec3Parameter(segment, location, "<", 0);
     findAndSetVec3Parameter(segment, color, "colorrgb<", 0);
@@ -123,64 +121,7 @@ void FileParser::parseLight(ifstream &file)
     lights.push_back(ls);
 }
 
-void FileParser::parseSphere(ifstream &file)
-{
-    vec3 center = vec3(0);
-    vec3 color = vec3(0);
-    vec4 rgbf = vec4(0);
-    float radius = 0, ambient = 0, diffuse = 0, specular = 0, reflection = 0;
-    float roughness = 0.3, metallic = 0.1, ior = 1.6;
-    mat4 inverseModelMatrix = mat4(1.0f);
-    size_t newStart = 0;
-    string segment = "", temp;
-    bool hasFilter = false;
-    
-    // Since there are subsections denoted with curly braces, we have to search
-    // for the '}' without a corresponding '{'. This means that it is the end
-    // of the sphere information.
-    getline(file, temp, '}');
-    while (count(temp.begin(), temp.end(), '{') > 0) {
-        temp.append("}");
-        segment.append(temp);
-        getline(file, temp, '}');
-    }
-    segment.append(temp);
-    
-    // Remove all whitespace from the string.
-    segment.erase(remove(segment.begin(), segment.end(), ' '), segment.end());
-    // Remove all newlines from the string.
-    segment.erase(remove(segment.begin(), segment.end(), '\n'), segment.end());
-    
-    newStart = findAndSetVec3Parameter(segment, center, "<", 0);
-    findAndSetSingleValueParameter(segment, radius, ",", newStart);
-    hasFilter = findAndSetVec4Parameter(segment, rgbf, "colorrgbf<", 0);
-    if (!hasFilter) {
-        findAndSetVec3Parameter(segment, color, "colorrgb<", 0);
-    }
-    findAndSetSingleValueParameter(segment, ambient, "ambient", 0);
-    findAndSetSingleValueParameter(segment, diffuse, "diffuse", 0);
-    findAndSetSingleValueParameter(segment, specular, "specular", 0);
-    findAndSetSingleValueParameter(segment, reflection, "reflection", 0);
-    findAndSetSingleValueParameter(segment, roughness, "roughness", 0);
-    findAndSetSingleValueParameter(segment, metallic, "metallic", 0);
-    findAndSetSingleValueParameter(segment, ior, "ior", 0);
-    inverseModelMatrix = calculateInverseModelMatrix(segment);
-    
-    shared_ptr<Sphere> sphere;
-    if (hasFilter) {
-        sphere = make_shared<Sphere>(center, radius, vec3(rgbf), ambient, diffuse,
-                                     specular, reflection, rgbf.w, roughness, metallic,
-                                     ior, inverseModelMatrix);
-    }
-    else {
-        sphere = make_shared<Sphere>(center, radius, color, ambient, diffuse, specular,
-                                     reflection, 0, roughness, metallic, ior, inverseModelMatrix);
-    }
-    
-    objects.push_back(sphere);
-}
-
-void FileParser::parsePlane(ifstream &file)
+void FileParser::parsePlane(ifstream &file, const int ID)
 {
     vec3 normal = vec3(0);
     vec3 color = vec3(0);
@@ -204,10 +145,7 @@ void FileParser::parsePlane(ifstream &file)
     }
     segment.append(temp);
     
-    // Remove all whitespace from the string.
-    segment.erase(remove(segment.begin(), segment.end(), ' '), segment.end());
-    // Remove all newlines from the string.
-    segment.erase(remove(segment.begin(), segment.end(), '\n'), segment.end());
+    removeNewlinesAndWhitespace(segment);
     
     newStart = findAndSetVec3Parameter(segment, normal, "<", 0);
     findAndSetSingleValueParameter(segment, distance, ",", newStart);
@@ -223,21 +161,81 @@ void FileParser::parsePlane(ifstream &file)
     findAndSetSingleValueParameter(segment, metallic, "metallic", 0);
     findAndSetSingleValueParameter(segment, ior, "ior", 0);
     inverseModelMatrix = calculateInverseModelMatrix(segment);
-
+    
     shared_ptr<Plane> plane;
     if (hasFilter) {
-        plane = make_shared<Plane>(normal, distance, vec3(rgbf), ambient, diffuse,
+        plane = make_shared<Plane>(ID, normal, distance, vec3(rgbf), ambient, diffuse,
                                    specular, reflection, rgbf.w, roughness, metallic,
                                    ior, inverseModelMatrix);
     }
     else {
-        plane = make_shared<Plane>(normal, distance, color, ambient, diffuse, specular,
+        plane = make_shared<Plane>(ID, normal, distance, color, ambient, diffuse, specular,
                                    reflection, 0, roughness, metallic, ior, inverseModelMatrix);
     }
+    
     objects.push_back(plane);
 }
 
-void FileParser::parseTriangle(ifstream &file)
+void FileParser::parseSphere(ifstream &file, const int ID, const bool useBVH)
+{
+    vec3 center = vec3(0);
+    vec3 color = vec3(0);
+    vec4 rgbf = vec4(0);
+    float radius = 0, ambient = 0, diffuse = 0, specular = 0, reflection = 0;
+    float roughness = 0.3, metallic = 0.1, ior = 1.6;
+    mat4 inverseModelMatrix = mat4(1.0f);
+    size_t newStart = 0;
+    string segment = "", temp;
+    bool hasFilter = false;
+    
+    // Since there are subsections denoted with curly braces, we have to search
+    // for the '}' without a corresponding '{'. This means that it is the end
+    // of the sphere information.
+    getline(file, temp, '}');
+    while (count(temp.begin(), temp.end(), '{') > 0) {
+        temp.append("}");
+        segment.append(temp);
+        getline(file, temp, '}');
+    }
+    segment.append(temp);
+    
+    removeNewlinesAndWhitespace(segment);
+    
+    newStart = findAndSetVec3Parameter(segment, center, "<", 0);
+    findAndSetSingleValueParameter(segment, radius, ",", newStart);
+    hasFilter = findAndSetVec4Parameter(segment, rgbf, "colorrgbf<", 0);
+    if (!hasFilter) {
+        findAndSetVec3Parameter(segment, color, "colorrgb<", 0);
+    }
+    findAndSetSingleValueParameter(segment, ambient, "ambient", 0);
+    findAndSetSingleValueParameter(segment, diffuse, "diffuse", 0);
+    findAndSetSingleValueParameter(segment, specular, "specular", 0);
+    findAndSetSingleValueParameter(segment, reflection, "reflection", 0);
+    findAndSetSingleValueParameter(segment, roughness, "roughness", 0);
+    findAndSetSingleValueParameter(segment, metallic, "metallic", 0);
+    findAndSetSingleValueParameter(segment, ior, "ior", 0);
+    inverseModelMatrix = calculateInverseModelMatrix(segment);
+    
+    shared_ptr<Sphere> sphere;
+    if (hasFilter) {
+        sphere = make_shared<Sphere>(ID, center, radius, vec3(rgbf), ambient, diffuse,
+                                     specular, reflection, rgbf.w, roughness, metallic,
+                                     ior, inverseModelMatrix);
+    }
+    else {
+        sphere = make_shared<Sphere>(ID, center, radius, color, ambient, diffuse, specular,
+                                     reflection, 0, roughness, metallic, ior, inverseModelMatrix);
+    }
+    
+    if (useBVH) {
+        nonPlanes.push_back(sphere);
+    }
+    else {
+        objects.push_back(sphere);
+    }
+}
+
+void FileParser::parseTriangle(ifstream &file, const int ID, const bool useBVH)
 {
     vec3 v0 = vec3(0);
     vec3 v1 = vec3(0);
@@ -262,10 +260,7 @@ void FileParser::parseTriangle(ifstream &file)
     }
     segment.append(temp);
     
-    // Remove all whitespace from the string.
-    segment.erase(remove(segment.begin(), segment.end(), ' '), segment.end());
-    // Remove all newlines from the string.
-    segment.erase(remove(segment.begin(), segment.end(), '\n'), segment.end());
+    removeNewlinesAndWhitespace(segment);
     
     newStart = findAndSetVec3Parameter(segment, v0, "<", 0);
     newStart = findAndSetVec3Parameter(segment, v1, "<", newStart);
@@ -285,20 +280,26 @@ void FileParser::parseTriangle(ifstream &file)
     
     shared_ptr<Triangle> triangle;
     if (hasFilter) {
-        triangle = make_shared<Triangle>(v0, v1, v2, vec3(rgbf), ambient, diffuse,
+        triangle = make_shared<Triangle>(ID, v0, v1, v2, vec3(rgbf), ambient, diffuse,
                                          specular, reflection, rgbf.w, roughness,
                                          metallic, ior, inverseModelMatrix);
     }
     else {
-        triangle = make_shared<Triangle>(v0, v1, v2, color, ambient, diffuse,
+        triangle = make_shared<Triangle>(ID, v0, v1, v2, color, ambient, diffuse,
                                          specular, reflection, 0, roughness,
                                          metallic, ior, inverseModelMatrix);
     }
-    objects.push_back(triangle);
+    
+    if (useBVH) {
+        nonPlanes.push_back(triangle);
+    }
+    else {
+        objects.push_back(triangle);
+    }
 }
 
-void FileParser::findAndSetSingleValueParameter(const string segment, float &parameter,
-                                                const string indicator, const size_t start)
+void FileParser::findAndSetSingleValueParameter(const string &segment, float &parameter,
+                                                const string &indicator, const size_t start)
 {
     size_t found = -1, end = -1;
     string temp;
@@ -313,8 +314,8 @@ void FileParser::findAndSetSingleValueParameter(const string segment, float &par
     }
 }
 
-size_t FileParser::findAndSetVec3Parameter(const string segment, vec3 &parameter,
-                                             const string indicator, const size_t start)
+size_t FileParser::findAndSetVec3Parameter(const string &segment, vec3 &parameter,
+                                           const string &indicator, const size_t start)
 {
     size_t found = -1, end = -1;
     string temp;
@@ -343,8 +344,8 @@ size_t FileParser::findAndSetVec3Parameter(const string segment, vec3 &parameter
     return end;
 }
 
-bool FileParser::findAndSetVec4Parameter(const string segment, vec4 &parameter,
-                                         const string indicator, const size_t start)
+bool FileParser::findAndSetVec4Parameter(const string &segment, vec4 &parameter,
+                                         const string &indicator, const size_t start)
 {
     size_t found = -1, end = -1;
     bool hasFilter = false;
@@ -381,7 +382,7 @@ bool FileParser::findAndSetVec4Parameter(const string segment, vec4 &parameter,
     return hasFilter;
 }
 
-mat4 FileParser::calculateInverseModelMatrix(const string segment)
+mat4 FileParser::calculateInverseModelMatrix(const string &segment)
 {
     size_t end = -1, startSubSegment = -1, endSubSegment = -1;
     vec3 scale, rotate, translate;
@@ -416,7 +417,7 @@ mat4 FileParser::calculateInverseModelMatrix(const string segment)
                     modelMatrix = glm::translate(mat4(1.0f), translate) * modelMatrix;
                 }
                 else {
-                    printf("Error: invalid povray command encountered.\n");
+                    // Found end of tranforms: break out of loop.
                     break;
                 }
             }
@@ -429,7 +430,7 @@ mat4 FileParser::calculateInverseModelMatrix(const string segment)
     return glm::inverse(modelMatrix);
 }
 
-size_t FileParser::findIndexOfFirstTransform(const string segment)
+size_t FileParser::findIndexOfFirstTransform(const string &segment)
 {
     size_t rotate = -1, scale = -1, translate = -1, result = numeric_limits<size_t>::max();
     
@@ -442,4 +443,12 @@ size_t FileParser::findIndexOfFirstTransform(const string segment)
     result = std::min(result, translate);
     
     return result;
+}
+
+void FileParser::removeNewlinesAndWhitespace(string &segment)
+{
+    // Remove all newlines from the string.
+    segment.erase(remove(segment.begin(), segment.end(), '\n'), segment.end());
+    // Remove all whitespace from the string.
+    segment.erase(remove(segment.begin(), segment.end(), ' '), segment.end());
 }

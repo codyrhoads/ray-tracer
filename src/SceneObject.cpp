@@ -13,11 +13,13 @@
 #include "SceneObject.hpp"
 #include "LightSource.hpp"
 #include "Ray.hpp"
+#include "IntersectionResults.h"
 
 using namespace std;
 using namespace glm;
 
 SceneObject::SceneObject() :
+ID(-1),
 color(vec3(0)),
 ambient(0),
 diffuse(0),
@@ -30,10 +32,11 @@ ior(1.6)
     
 }
 
-SceneObject::SceneObject(const vec3 &color, const float ambient, const float diffuse,
-                         const float specular, const float reflection, const float filter,
-                         const float roughness, const float metallic, const float ior,
-                         const mat4 &inverseModelMatrix) :
+SceneObject::SceneObject(const int ID, const vec3 &color, const float ambient,
+                         const float diffuse, const float specular, const float reflection,
+                         const float filter, const float roughness, const float metallic,
+                         const float ior, const mat4 &inverseModelMatrix) :
+ID(ID),
 color(color),
 ambient(ambient),
 diffuse(diffuse),
@@ -48,9 +51,9 @@ inverseModelMatrix(inverseModelMatrix)
     
 }
 
-bool SceneObject::testIntersection(const shared_ptr<Ray> &ray, float &t) const
+IntersectionResults SceneObject::findIntersection(const shared_ptr<Ray> &ray)
 {
-    return false;
+    return IntersectionResults();
 }
 
 void SceneObject::printObjectInfo() const

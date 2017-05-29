@@ -1,10 +1,13 @@
 # ray-tracer
 
 ## Parsing
-Parses Camera, Lights, Spheres, Planes, and Triangles correctly. Comments are ignored. Object transforms function properly, provided they are given consecutively and are the last object information provided.
+Parses Camera, Lights, Spheres, Planes, and Triangles correctly. Comments are ignored. Object transforms manipulate the object properly, provided all transforms are given consecutively.
 
 ## Rendering
 Images render fine with Blinn-Phong and Cook-Torrance. Reflectance and Refraction are functioning properly. Schlick's Approximation and Beer's Law are implemented. Anti-aliasing is implemented.
+
+## Spatial Data Structure
+Bounding Volume Hierarchy is implemented.
 
 ## Diagnostic/Testing
 Most test commands (sceneinfo, pixelray, firsthit, pixelcolor) are functioning as intended.

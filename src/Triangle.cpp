@@ -9,6 +9,7 @@
 #include "Triangle.hpp"
 #include "LightSource.hpp"
 #include "Ray.hpp"
+#include "IntersectionResults.h"
 
 using namespace std;
 using namespace glm;
@@ -22,22 +23,38 @@ v2(vec3(0))
     
 }
 
-Triangle::Triangle(const vec3 &v0, const vec3 &v1, const vec3 &v2,
+Triangle::Triangle(const int ID, const vec3 &v0, const vec3 &v1, const vec3 &v2,
                    const vec3 &color, const float ambient, const float diffuse,
                    const float specular, const float reflection, const float filter,
                    const float roughness, const float metallic, const float ior,
                    const mat4 &inverseModelMatrix) :
-SceneObject(color, ambient, diffuse, specular, reflection, filter, roughness, metallic,
-            ior, inverseModelMatrix),
+SceneObject(ID, color, ambient, diffuse, specular, reflection, filter, roughness,
+            metallic, ior, inverseModelMatrix),
 v0(v0),
 v1(v1),
 v2(v2)
 {
-    
+    float minX = std::min(v0.x, v1.x);
+    minX = std::min(minX, v2.x);
+    float minY = std::min(v0.y, v1.y);
+    minY = std::min(minY, v2.y);
+    float minZ = std::min(v0.z, v1.z);
+    minZ = std::min(minZ, v2.z);
+    float maxX = std::max(v0.x, v1.x);
+    maxX = std::max(maxX, v2.x);
+    float maxY = std::max(v0.y, v1.y);
+    maxY = std::max(maxY, v2.y);
+    float maxZ = std::max(v0.z, v1.z);
+    maxZ = std::max(maxZ, v2.z);
+
+    BBmins = vec3(minX, minY, minZ);
+    BBmaxes = vec3(maxX, maxY, maxZ);
 }
 
-bool Triangle::testIntersection(const shared_ptr<Ray> &ray, float &t) const
+IntersectionResults Triangle::findIntersection(const shared_ptr<Ray> &ray)
 {
+    IntersectionResults ir = IntersectionResults();
+    
     // v0 = a, v1 = b, v2 = c
     const float Xa_minus_Px = v0.x - ray->getOrigin().x;
     const float Ya_minus_Py = v0.y - ray->getOrigin().y;
@@ -70,7 +87,7 @@ bool Triangle::testIntersection(const shared_ptr<Ray> &ray, float &t) const
     const float calcT = topDeterminant/bottomDeterminant;
     
     if (calcT < 0) {
-        return false;
+        return ir;
     }
     
     // Calculate gamma
@@ -83,7 +100,7 @@ bool Triangle::testIntersection(const shared_ptr<Ray> &ray, float &t) const
     const float gamma = topDeterminant/bottomDeterminant;
     
     if (gamma < 0 || gamma > 1) {
-        return false;
+        return ir;
     }
     
     // Calculate beta
@@ -96,11 +113,13 @@ bool Triangle::testIntersection(const shared_ptr<Ray> &ray, float &t) const
     const float beta = topDeterminant/bottomDeterminant;
     
     if (beta < 0 || (beta > 1 - gamma)) {
-        return false;
+        return ir;
     }
     
-    t = calcT;
-    return true;
+    ir.foundIntersection = true;
+    ir.t = calcT;
+    ir.intersectedObj = shared_from_this();
+    return ir;
 }
 
 void Triangle::printObjectInfo() const

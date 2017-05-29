@@ -49,24 +49,25 @@ void Camera::render(const vector<shared_ptr<SceneObject>> &objects,
                     const vector<shared_ptr<LightSource>> &lights,
                     const OptionalArgs &optArgs)
 {
-    int index = -1, rgbIndex = 0;
+    int rgbIndex = 0;
     unsigned char *rgbData = new unsigned char[imageWidth * imageHeight * 3];
     string trace = "";
     Shader shader = Shader(objects, lights, optArgs, false);
+    shared_ptr<SceneObject> hitObj = nullptr;
     
     for (int j = imageHeight - 1; j >= 0; j--) {
         for (int i = 0; i < imageWidth; i++) {
             // superSampleN > 0 means that we are doing super sampling
             if (optArgs.superSampleN > 0) {
-                vec3 totalColor = vec3(0, 0, 0);
+                vec3 totalColor = vec3(0);
                 
                 // super sampling
                 for (int n = 0; n < optArgs.superSampleN; n++) {
                     for (int m = 0; m < optArgs.superSampleN; m++) {
                         setCurrRaySuperSampling(i, j, m, n, optArgs.superSampleN);
-                        index = currRay->findClosestObjectIndex(objects);
+                        hitObj = currRay->findClosestObject(objects);
                         
-                        if (index != -1) {
+                        if (hitObj != nullptr) {
                             vec3 color = shader.getShadedColor(currRay, 0, trace);
                             totalColor += color;
                         }
@@ -83,10 +84,10 @@ void Camera::render(const vector<shared_ptr<SceneObject>> &objects,
             }
             else {
                 setCurrRay(i, j);
-                index = currRay->findClosestObjectIndex(objects);
+                hitObj = currRay->findClosestObject(objects);
                 
-                vec3 color = vec3(0, 0, 0);
-                if (index != -1) {
+                vec3 color = vec3(0);
+                if (hitObj != nullptr) {
                     color = shader.getShadedColor(currRay, 0, trace);
                 }
                 
@@ -96,7 +97,7 @@ void Camera::render(const vector<shared_ptr<SceneObject>> &objects,
                 rgbData[rgbIndex++] = round(std::min(color.b, 1.0f) * 255);
             }
             
-            index = -1;
+            hitObj = nullptr;
         }
     }
     
@@ -119,14 +120,13 @@ void Camera::firstHit(const vector<shared_ptr<SceneObject>> &objects,
 {
     pixelRay(pixelX, pixelY);
     
-    int index = currRay->findClosestObjectIndex(objects);
+    shared_ptr<SceneObject> hitObj = currRay->findClosestObject(objects);
     
-    if (index != -1) {
-        shared_ptr<SceneObject> obj = objects.at(index);
+    if (hitObj != nullptr) {
         printf("T = %.4g\n", currRay->getIntersectionTime());
-        printf("Object Type: %s\n", obj->getObjectType().c_str());
-        printf("Color: %.4g %.4g %.4g\n", obj->getColor().r, obj->getColor().g,
-               obj->getColor().b);
+        printf("Object Type: %s\n", hitObj->getObjectType().c_str());
+        printf("Color: %.4g %.4g %.4g\n", hitObj->getColor().r, hitObj->getColor().g,
+               hitObj->getColor().b);
     }
     else {
         printf("No Hit\n");
@@ -143,15 +143,14 @@ void Camera::pixelColor(const vector<shared_ptr<SceneObject>> &objects,
     
     pixelRay(pixelX, pixelY);
     
-    int index = currRay->findClosestObjectIndex(objects);
+    shared_ptr<SceneObject> hitObj = currRay->findClosestObject(objects);
     
-    if (index != -1) {
+    if (hitObj != nullptr) {
         vec3 color;
-        shared_ptr<SceneObject> obj = objects.at(index);
         color = shader.getShadedColor(currRay, 0, trace);
         
         printf("T = %.4g\n", currRay->getIntersectionTime());
-        printf("Object Type: %s\n", obj->getObjectType().c_str());
+        printf("Object Type: %s\n", hitObj->getObjectType().c_str());
         printf("BRDF: %s\n", (optArgs.BRDF).c_str());
         printf("Color: (%.4g, %.4g, %.4g)\n",
                round(std::min(color.r, 1.0f) * 255),
@@ -173,13 +172,10 @@ void Camera::printRays(const vector<shared_ptr<SceneObject>> &objects,
     
     setCurrRay(pixelX, pixelY);
     
-    int index = currRay->findClosestObjectIndex(objects);
+    shared_ptr<SceneObject> hitObj = currRay->findClosestObject(objects);
     
-    if (index != -1) {
-        vec3 color;
-        shared_ptr<SceneObject> obj = objects.at(index);
-        
-        color = shader.getShadedColor(currRay, 0, trace);
+    if (hitObj != nullptr) {
+        vec3 color = shader.getShadedColor(currRay, 0, trace);
         
         printf("Pixel: [%.4g, %.4g] ", pixelX, pixelY);
         printf("Color: (%.4g, %.4g, %.4g)\n",

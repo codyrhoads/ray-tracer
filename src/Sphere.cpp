@@ -11,6 +11,7 @@
 #include "Sphere.hpp"
 #include "LightSource.hpp"
 #include "Ray.hpp"
+#include "IntersectionResults.h"
 
 using namespace std;
 using namespace glm;
@@ -23,23 +24,57 @@ radius(0)
     
 }
 
-Sphere::Sphere(const vec3 &center, const float radius, const vec3 &color,
+Sphere::Sphere(const int ID, const vec3 &center, const float radius, const vec3 &color,
                const float ambient, const float diffuse, const float specular,
                const float reflection, const float filter, const float roughness,
                const float metallic, const float ior, const mat4 &inverseModelMatrix) :
-SceneObject(color, ambient, diffuse, specular, reflection, filter, roughness, metallic,
-            ior, inverseModelMatrix),
+SceneObject(ID, color, ambient, diffuse, specular, reflection, filter, roughness,
+            metallic, ior, inverseModelMatrix),
 center(center),
 radius(radius)
 {
-    
+    if (inverseModelMatrix != mat4(1)) {
+        vector<vec4> BBcorners = {
+            vec4(center.x - radius, center.y - radius, center.z - radius, 1),
+            vec4(center.x + radius, center.y - radius, center.z - radius, 1),
+            vec4(center.x - radius, center.y + radius, center.z - radius, 1),
+            vec4(center.x + radius, center.y + radius, center.z - radius, 1),
+            vec4(center.x - radius, center.y - radius, center.z + radius, 1),
+            vec4(center.x + radius, center.y - radius, center.z + radius, 1),
+            vec4(center.x - radius, center.y + radius, center.z + radius, 1),
+            vec4(center.x + radius, center.y + radius, center.z + radius, 1),
+        };
+        
+        const mat4 modelMatrix = inverse(inverseModelMatrix);
+        for (unsigned int i = 0; i < BBcorners.size(); i++) {
+            BBcorners.at(i) = modelMatrix * BBcorners.at(i);
+            if (i == 0) {
+                BBmins = vec3(BBcorners.at(i));
+                BBmaxes = vec3(BBcorners.at(i));
+            }
+            else {
+                BBmins = vec3(std::min(BBmins.x, BBcorners.at(i).x),
+                              std::min(BBmins.y, BBcorners.at(i).y),
+                              std::min(BBmins.z, BBcorners.at(i).z));
+                BBmaxes = vec3(std::max(BBmaxes.x, BBcorners.at(i).x),
+                               std::max(BBmaxes.y, BBcorners.at(i).y),
+                               std::max(BBmaxes.z, BBcorners.at(i).z));
+            }
+        }
+    }
+    else {
+        BBmins = vec3(center.x - radius, center.y - radius, center.z - radius);
+        BBmaxes = vec3(center.x + radius, center.y + radius, center.z + radius);
+    }
 }
 
-bool Sphere::testIntersection(const shared_ptr<Ray> &ray, float &t) const
+IntersectionResults Sphere::findIntersection(const shared_ptr<Ray> &ray)
 {
+    IntersectionResults ir = IntersectionResults();
     // Transforming the ray from world space to object space
     vec3 rayOrigin = vec3(inverseModelMatrix * vec4(ray->getOrigin(), 1.0));
     vec3 rayDirection = vec3(inverseModelMatrix * vec4(ray->getDirection(), 0.0));
+    float t;
     
     const float A = dot(rayDirection, rayDirection);
     const float B = 2 * dot(rayDirection, rayOrigin - center);
@@ -52,15 +87,19 @@ bool Sphere::testIntersection(const shared_ptr<Ray> &ray, float &t) const
         if (t < 0) {
             t = (-B + sqrt(discriminant))/(2 * A);
             if (t > 0) {
-                return true;
+                ir.foundIntersection = true;
+                ir.t = t;
+                ir.intersectedObj = shared_from_this();
             }
         }
         else {
-            return true;
+            ir.foundIntersection = true;
+            ir.t = t;
+            ir.intersectedObj = shared_from_this();
         }
     }
     
-    return false;
+    return ir;
 }
 
 void Sphere::printObjectInfo() const

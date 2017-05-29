@@ -11,16 +11,16 @@
 
 #include "SceneObject.hpp"
 
-class Plane : public SceneObject
+class Plane : public SceneObject, public std::enable_shared_from_this<Plane>
 {
 public:
     Plane();
-    Plane(const glm::vec3 &normal, const float distance, const glm::vec3 &color,
+    Plane(const int ID, const glm::vec3 &normal, const float distance, const glm::vec3 &color,
           const float ambient, const float diffuse, const float specular,
           const float reflection, const float filter, const float roughness,
           const float metallic, const float ior, const glm::mat4 &inverseModelMatrix);
     
-    bool testIntersection(const std::shared_ptr<Ray> &ray, float &t) const;
+    IntersectionResults findIntersection(const std::shared_ptr<Ray> &ray);
     
     void printObjectInfo() const;
     std::string getObjectType() const {return "Plane";}

@@ -15,19 +15,22 @@ struct OptionalArgs
 {
     bool fresnel;
     int superSampleN;
+    bool useBVH;
     std::string BRDF;
     
     OptionalArgs()
     {
         fresnel = false;
         superSampleN = 0;
+        useBVH = false;
         BRDF = "Blinn-Phong";
     };
     
-    OptionalArgs(const bool fres, const int ssN, const std::string brdf)
+    OptionalArgs(const bool fres, const int ssN, const bool bvh, const std::string brdf)
     {
         fresnel = fres;
         superSampleN = ssN;
+        useBVH = bvh;
         BRDF = brdf;
     };
 };

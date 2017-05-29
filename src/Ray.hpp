@@ -21,10 +21,10 @@ public:
     Ray();
     Ray(const glm::vec3 &origin, const glm::vec3 &dir);
     
-    int findClosestObjectIndex(const std::vector<std::shared_ptr<SceneObject>> &objects);
+    std::shared_ptr<SceneObject> findClosestObject(const std::vector<std::shared_ptr<SceneObject>> &objects);
     
     float getIntersectionTime() const {return t;}
-    int getIndexOfIntersectedObject() const {return indexOfIntersected;}
+    std::shared_ptr<SceneObject> getIntersectedObject() const {return intersectedObj;}
     glm::vec3 getIntersectionPoint() const {return origin + t * direction;}
     glm::vec3 getOrigin() const {return origin;}
     glm::vec3 getDirection() const {return direction;}
@@ -34,7 +34,7 @@ public:
 private:
     glm::vec3 origin, direction;
     float t;
-    int indexOfIntersected;
+    std::shared_ptr<SceneObject> intersectedObj;
 };
 
 #endif /* Ray_hpp */

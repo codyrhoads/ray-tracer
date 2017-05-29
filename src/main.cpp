@@ -28,6 +28,9 @@ void checkForOptionalArguments(char **argv, const int argc, const int start,
         else if (subArg == "-ss=") {
             optArgs.superSampleN = atoi(arg.substr(4, arg.length() - 4).c_str());
         }
+        else if (subArg == "-sds") {
+            optArgs.useBVH = true;
+        }
         else if (arg == "-altbrdf") {
             optArgs.BRDF = "Alternate";
         }
@@ -104,7 +107,7 @@ int main(int argc, char **argv)
     }
     
     // Parse the input file, which should always be located at index 2.
-    parser.parse(string(argv[2]));
+    parser.parse(string(argv[2]), optArgs.useBVH);
     camera = parser.getCamera();
     if (command != SCENEINFO) {
         camera->setImageSize(atoi(argv[3]), atoi(argv[4]));

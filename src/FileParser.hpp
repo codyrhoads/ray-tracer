@@ -24,7 +24,7 @@ class FileParser
 public:
     FileParser();
     
-    void parse(const std::string &filename);
+    void parse(const std::string &filename, const bool useBVH);
     
     std::shared_ptr<Camera> getCamera() const {return camera;}
     std::vector<std::shared_ptr<LightSource>> getLights() const {return lights;}
@@ -32,22 +32,24 @@ public:
 private:
     void parseCamera(std::ifstream &file);
     void parseLight(std::ifstream &file);
-    void parseSphere(std::ifstream &file);
-    void parsePlane(std::ifstream &file);
-    void parseTriangle(std::ifstream &file);
+    void parsePlane(std::ifstream &file, const int ID);
+    void parseSphere(std::ifstream &file, const int ID, const bool useBVH);
+    void parseTriangle(std::ifstream &file, const int ID, const bool useBVH);
     
-    void findAndSetSingleValueParameter(const std::string segment, float &parameter,
-                                        const std::string indicator, const size_t start);
-    size_t findAndSetVec3Parameter(const std::string segment, glm::vec3 &parameter,
-                                   const std::string indicator, const size_t start);
-    bool findAndSetVec4Parameter(const std::string segment, glm::vec4 &parameter,
-                                 const std::string indicator, const size_t start);
-    glm::mat4 calculateInverseModelMatrix(const std::string segment);
-    size_t findIndexOfFirstTransform(const std::string segment);
+    void findAndSetSingleValueParameter(const std::string &segment, float &parameter,
+                                        const std::string &indicator, const size_t start);
+    size_t findAndSetVec3Parameter(const std::string &segment, glm::vec3 &parameter,
+                                   const std::string &indicator, const size_t start);
+    bool findAndSetVec4Parameter(const std::string &segment, glm::vec4 &parameter,
+                                 const std::string &indicator, const size_t start);
+    glm::mat4 calculateInverseModelMatrix(const std::string &segment);
+    size_t findIndexOfFirstTransform(const std::string &segment);
+    
+    void removeNewlinesAndWhitespace(std::string &segment);
     
     std::shared_ptr<Camera> camera;
     std::vector<std::shared_ptr<LightSource>> lights;
-    std::vector<std::shared_ptr<SceneObject>> objects;
+    std::vector<std::shared_ptr<SceneObject>> objects, nonPlanes;
 };
 
 #endif /* FileParser_hpp */
