@@ -23,11 +23,11 @@ public:
     
     IntersectionResults findIntersection(const std::shared_ptr<Ray> &ray);
     
+    glm::vec3 getNormalAtPoint(const glm::vec3 &point) const;
+    
     void printObjectInfo() const;
     std::string getObjectType() const {return "Triangle";}
 private:
-    glm::vec3 getNormalAtPoint(const glm::vec3 &point) const {return normalize(cross(v1 - v0, v2 - v0));}
-    
     glm::vec3 v0, v1, v2;
 };
 

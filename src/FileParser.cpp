@@ -14,6 +14,7 @@
 #include "LightSource.hpp"
 #include "Plane.hpp"
 #include "Sphere.hpp"
+#include "Box.hpp"
 #include "Triangle.hpp"
 #include "BVHNode.hpp"
 
@@ -62,6 +63,10 @@ void FileParser::parse(const string &filename, const bool useBVH)
         /* PARSING SPHERE OBJECT */
         if (segment.find("sphere") != string::npos) {
             parseSphere(file, ID++, useBVH);
+        }
+        /* PARSING BOX OBJECT */
+        if (segment.find("box") != string::npos) {
+            parseBox(file, ID++, useBVH);
         }
         /* PARSING TRIANGLE OBJECT */
         else if (segment.find("triangle") != string::npos) {
@@ -232,6 +237,66 @@ void FileParser::parseSphere(ifstream &file, const int ID, const bool useBVH)
     }
     else {
         objects.push_back(sphere);
+    }
+}
+
+void FileParser::parseBox(ifstream &file, const int ID, const bool useBVH)
+{
+    vec3 mins = vec3(0);
+    vec3 maxes = vec3(0);
+    vec3 color = vec3(0);
+    vec4 rgbf = vec4(0);
+    float ambient = 0, diffuse = 0, specular = 0, reflection = 0;
+    float roughness = 0.3, metallic = 0.1, ior = 1.6;
+    mat4 inverseModelMatrix = mat4(1.0f);
+    size_t newStart = 0;
+    string segment = "", temp;
+    bool hasFilter = false;
+    
+    // Since there are subsections denoted with curly braces, we have to search
+    // for the '}' without a corresponding '{'. This means that it is the end
+    // of the sphere information.
+    getline(file, temp, '}');
+    while (count(temp.begin(), temp.end(), '{') > 0) {
+        temp.append("}");
+        segment.append(temp);
+        getline(file, temp, '}');
+    }
+    segment.append(temp);
+    
+    removeNewlinesAndWhitespace(segment);
+    
+    newStart = findAndSetVec3Parameter(segment, mins, "<", 0);
+    findAndSetVec3Parameter(segment, maxes, "<", newStart);
+    hasFilter = findAndSetVec4Parameter(segment, rgbf, "colorrgbf<", 0);
+    if (!hasFilter) {
+        findAndSetVec3Parameter(segment, color, "colorrgb<", 0);
+    }
+    findAndSetSingleValueParameter(segment, ambient, "ambient", 0);
+    findAndSetSingleValueParameter(segment, diffuse, "diffuse", 0);
+    findAndSetSingleValueParameter(segment, specular, "specular", 0);
+    findAndSetSingleValueParameter(segment, reflection, "reflection", 0);
+    findAndSetSingleValueParameter(segment, roughness, "roughness", 0);
+    findAndSetSingleValueParameter(segment, metallic, "metallic", 0);
+    findAndSetSingleValueParameter(segment, ior, "ior", 0);
+    inverseModelMatrix = calculateInverseModelMatrix(segment);
+    
+    shared_ptr<Box> box;
+    if (hasFilter) {
+        box = make_shared<Box>(ID, mins, maxes, vec3(rgbf), ambient, diffuse,
+                               specular, reflection, rgbf.w, roughness, metallic,
+                               ior, inverseModelMatrix);
+    }
+    else {
+        box = make_shared<Box>(ID, mins, maxes, color, ambient, diffuse, specular,
+                               reflection, 0, roughness, metallic, ior, inverseModelMatrix);
+    }
+    
+    if (useBVH) {
+        nonPlanes.push_back(box);
+    }
+    else {
+        objects.push_back(box);
     }
 }
 

@@ -1,7 +1,7 @@
 # ray-tracer
 
 ## Parsing
-Parses Camera, Lights, Spheres, Planes, and Triangles correctly. Comments are ignored. Object transforms manipulate the object properly, provided all transforms are given consecutively.
+Parses Camera, Lights, Spheres, Boxes, Planes, and Triangles correctly. Comments are ignored. Object transforms manipulate the object properly, provided all transforms are given consecutively.
 
 ## Rendering
 Images render fine with Blinn-Phong and Cook-Torrance. Reflectance and Refraction are functioning properly. Schlick's Approximation and Beer's Law are implemented. Anti-aliasing is implemented.

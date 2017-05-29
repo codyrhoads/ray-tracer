@@ -34,6 +34,7 @@ private:
     void parseLight(std::ifstream &file);
     void parsePlane(std::ifstream &file, const int ID);
     void parseSphere(std::ifstream &file, const int ID, const bool useBVH);
+    void parseBox(std::ifstream &file, const int ID, const bool useBVH);
     void parseTriangle(std::ifstream &file, const int ID, const bool useBVH);
     
     void findAndSetSingleValueParameter(const std::string &segment, float &parameter,
