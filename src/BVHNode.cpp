@@ -6,6 +6,8 @@
 //
 //
 
+#include <algorithm>
+
 #include "BVHNode.hpp"
 #include "SceneObject.hpp"
 #include "Ray.hpp"
@@ -116,7 +118,7 @@ void BVHNode::calculateBBox()
     else {
         BBmins = vec3(objs.at(0)->getMins());
         BBmaxes = vec3(objs.at(0)->getMaxes());
-        for (int i = 1; i < objs.size(); i++) {
+        for (unsigned int i = 1; i < objs.size(); i++) {
             vec3 tempMin = objs.at(i)->getMins();
             vec3 tempMax = objs.at(i)->getMaxes();
             
@@ -236,30 +238,30 @@ void BVHNode::sortObjectsOnAxis(vector<shared_ptr<SceneObject>> &objs,
                                 const int axis)
 {
     if (axis == 0) {
-        sort(objs.begin(), objs.end(), &BVHNode::compareByXAxis);
+        std::sort(objs.begin(), objs.end(), &BVHNode::compareByXAxis);
     }
     else if (axis == 1) {
-        sort(objs.begin(), objs.end(), &BVHNode::compareByYAxis);
+        std::sort(objs.begin(), objs.end(), &BVHNode::compareByYAxis);
     }
     else {
-        sort(objs.begin(), objs.end(), &BVHNode::compareByZAxis);
+        std::sort(objs.begin(), objs.end(), &BVHNode::compareByZAxis);
     }
 }
 
 bool BVHNode::compareByXAxis(const shared_ptr<SceneObject> &a,
                              const shared_ptr<SceneObject> &b)
 {
-    return a->getMins().x < b->getMins().x;
+    return (a->getMaxes().x + a->getMins().x)/2 < (b->getMaxes().x + b->getMins().x)/2;
 }
 
 bool BVHNode::compareByYAxis(const shared_ptr<SceneObject> &a,
                              const shared_ptr<SceneObject> &b)
 {
-    return a->getMins().y < b->getMins().y;
+    return (a->getMaxes().y + a->getMins().y)/2 < (b->getMaxes().y + b->getMins().y)/2;
 }
 
 bool BVHNode::compareByZAxis(const shared_ptr<SceneObject> &a,
                              const shared_ptr<SceneObject> &b)
 {
-    return a->getMins().z < b->getMins().z;
+    return (a->getMaxes().z + a->getMins().z)/2 < (b->getMaxes().z + b->getMins().z)/2;
 }
