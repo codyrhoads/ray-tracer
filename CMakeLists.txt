@@ -27,9 +27,9 @@ if(WIN32)
   # -Wall produces way too many warnings.
   # -pedantic is not supported.
   # Disable warning 4996.
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /wd4996")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O3 /wd4996")
 else()
   # Enable all pedantic warnings.
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -Wall -pedantic")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O3 -std=c++11 -Wall -pedantic")
 endif()
 
