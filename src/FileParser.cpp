@@ -366,7 +366,7 @@ void FileParser::parseTriangle(ifstream &file, const int ID, const bool useBVH)
 void FileParser::findAndSetSingleValueParameter(const string &segment, float &parameter,
                                                 const string &indicator, const size_t start)
 {
-    size_t found = -1, end = -1;
+    size_t found, end = string::npos;
     string temp;
     
     found = segment.find(indicator, start);
@@ -382,7 +382,7 @@ void FileParser::findAndSetSingleValueParameter(const string &segment, float &pa
 size_t FileParser::findAndSetVec3Parameter(const string &segment, vec3 &parameter,
                                            const string &indicator, const size_t start)
 {
-    size_t found = -1, end = -1;
+    size_t found, end = string::npos;
     string temp;
     
     found = segment.find(indicator, start);
@@ -412,7 +412,7 @@ size_t FileParser::findAndSetVec3Parameter(const string &segment, vec3 &paramete
 bool FileParser::findAndSetVec4Parameter(const string &segment, vec4 &parameter,
                                          const string &indicator, const size_t start)
 {
-    size_t found = -1, end = -1;
+    size_t found, end = string::npos;
     bool hasFilter = false;
     string temp;
     
@@ -449,7 +449,7 @@ bool FileParser::findAndSetVec4Parameter(const string &segment, vec4 &parameter,
 
 mat4 FileParser::calculateInverseModelMatrix(const string &segment)
 {
-    size_t end = -1, startSubSegment = -1, endSubSegment = -1;
+    size_t end = string::npos, startSubSegment = string::npos, endSubSegment = string::npos;
     vec3 scale, rotate, translate;
     string subSegment;
     
@@ -464,12 +464,12 @@ mat4 FileParser::calculateInverseModelMatrix(const string &segment)
         subSegment = segment.substr(startSubSegment, endSubSegment - startSubSegment);
         
         end = findAndSetVec3Parameter(subSegment, scale, "scale<", 0);
-        if (end != -1) {
+        if (end != string::npos) {
             modelMatrix = glm::scale(mat4(1.0f), scale) * modelMatrix;
         }
         else {
             end = findAndSetVec3Parameter(subSegment, rotate, "rotate<", 0);
-            if (end != -1) {
+            if (end != string::npos) {
                 mat4 rotation;
                 rotation = glm::rotate(mat4(1.0f), radians(rotate.z), vec3(0, 0, 1)) * rotation;
                 rotation = glm::rotate(mat4(1.0f), radians(rotate.y), vec3(0, 1, 0)) * rotation;
@@ -478,7 +478,7 @@ mat4 FileParser::calculateInverseModelMatrix(const string &segment)
             }
             else {
                 end = findAndSetVec3Parameter(subSegment, translate, "translate<", 0);
-                if (end != -1) {
+                if (end != string::npos) {
                     modelMatrix = glm::translate(mat4(1.0f), translate) * modelMatrix;
                 }
                 else {
@@ -497,7 +497,8 @@ mat4 FileParser::calculateInverseModelMatrix(const string &segment)
 
 size_t FileParser::findIndexOfFirstTransform(const string &segment)
 {
-    size_t rotate = -1, scale = -1, translate = -1, result = numeric_limits<size_t>::max();
+    size_t rotate = string::npos, scale = string::npos, translate = string::npos;
+    size_t result = numeric_limits<size_t>::max();
     
     rotate = segment.find("rotate", 0);
     scale = segment.find("scale", 0);
