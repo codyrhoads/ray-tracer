@@ -85,6 +85,7 @@ vec3 Shader::getShadedColor(const shared_ptr<Ray> &ray, const int bounces,
                             refractionContribution * refractedColor;
     
     if (isPrintRays) {
+        string indent;
         ostringstream info;
         const vec3 transformedRayOrigin = vec3(obj->getInverseModelMatrix() * vec4(ray->getOrigin(), 1.0));
         const vec3 transformedRayDirection = vec3(obj->getInverseModelMatrix() * vec4(ray->getDirection(), 0.0));
@@ -94,23 +95,26 @@ vec3 Shader::getShadedColor(const shared_ptr<Ray> &ray, const int bounces,
         const vec3 reflect = reflectionContribution * reflectedColor;
         const vec3 refract = refractionContribution * refractedColor;
         
+        indent = to_string(bounces) + "  ";
+        
         info << fixed << setprecision(4) <<
-        "\n             Ray: " << ray->getRayInfo() <<
-        "\n Transformed Ray: {" << transformedRayOrigin.x << " " << transformedRayOrigin.y << " "
+        "\n"+indent+"             Ray: " << ray->getRayInfo() <<
+        "\n"+indent+" Transformed Ray: {" << transformedRayOrigin.x << " " << transformedRayOrigin.y << " "
             << transformedRayOrigin.z << "} -> {" << transformedRayDirection.x << " "
             << transformedRayDirection.y << " " << transformedRayDirection.z << "}" <<
-        "\n      Hit Object: (ID #" << obj->getID() << " - " << obj->getObjectType() << ")" <<
-        "\n    Intersection: " << ray->getIntersectionPointString() << " at T = "
+        "\n"+indent+"      Hit Object: (ID #" << obj->getID() << " - " << obj->getObjectType() << ")" <<
+        "\n"+indent+"    Intersection: " << ray->getIntersectionPointString() << " at T = "
             << ray->getIntersectionTime() <<
-        "\n          Normal: {" << N.x << " " << N.y << " " << N.z << "}" <<
-        "\n     Final Color: {" << finalColor.x << " " << finalColor.y << " " << finalColor.z << "}" <<
-        "\n         Ambient: {" << ambient.x << " " << ambient.y << " " << ambient.z << "}" <<
-        "\n         Diffuse: {" << diffuse.x << " " << diffuse.y << " " << diffuse.z << "}" <<
-        "\n        Specular: {" << specular.x << " " << specular.y << " " << specular.z << "}" <<
-        "\n      Reflection: {" << reflect.x << " " << reflect.y << " " << reflect.z << "}" <<
-        "\n      Refraction: {" << refract.x << " " << refract.y << " " << refract.z << "}" <<
-        "\n   Contributions: " << localContribution << " Local, " << reflectionContribution << " Reflection, "
-            << refractionContribution << " Transmission";
+        "\n"+indent+"          Normal: {" << N.x << " " << N.y << " " << N.z << "}" <<
+        "\n"+indent+"     Final Color: {" << finalColor.x << " " << finalColor.y << " " << finalColor.z << "}" <<
+        "\n"+indent+"         Ambient: {" << ambient.x << " " << ambient.y << " " << ambient.z << "}" <<
+        "\n"+indent+"         Diffuse: {" << diffuse.x << " " << diffuse.y << " " << diffuse.z << "}" <<
+        "\n"+indent+"        Specular: {" << specular.x << " " << specular.y << " " << specular.z << "}" <<
+        "\n"+indent+"      Reflection: {" << reflect.x << " " << reflect.y << " " << reflect.z << "}" <<
+        "\n"+indent+"      Refraction: {" << refract.x << " " << refract.y << " " << refract.z << "}" <<
+        "\n"+indent+"   Contributions: " << localContribution << " Local, " << reflectionContribution
+            << " Reflection, " << refractionContribution << " Transmission" <<
+        "\n---------------------------------------------";
         
         trace = info.str() + trace;
     }
@@ -126,7 +130,13 @@ vec3 Shader::findLocalColorBlinnPhong(const shared_ptr<Ray> &ray,
     const vec3 ka = obj->getColor() * obj->getAmbient();
     const vec3 kd = obj->getColor() * obj->getDiffuse();
     const vec3 ks = obj->getColor() * obj->getSpecular();
-    const vec3 N = obj->getNormalAtPoint(ray->getIntersectionPoint());
+    
+    vec3 N = obj->getNormalAtPoint(ray->getIntersectionPoint());
+    // If ray is exiting a shape, then flip the normal.
+    if (dot(ray->getDirection(), N) > 0) {
+        N = -N;
+    }
+    
     const float power = (2.0/pow(obj->getRoughness(), 2.0)) - 2.0;
     
     for (unsigned int i = 0; i < lights.size(); i++) {
@@ -164,7 +174,12 @@ vec3 Shader::findLocalColorCookTorrance(const shared_ptr<Ray> &ray)
     shared_ptr<SceneObject> obj = ray->getIntersectedObject();
     const vec3 ka = obj->getColor() * obj->getAmbient();
     const vec3 kd = obj->getColor() * obj->getDiffuse();
-    const vec3 N = obj->getNormalAtPoint(ray->getIntersectionPoint());
+    
+    vec3 N = obj->getNormalAtPoint(ray->getIntersectionPoint());
+    // If ray is exiting a shape, then flip the normal.
+    if (dot(ray->getDirection(), N) > 0) {
+        N = -N;
+    }
     const float alpha = pow(obj->getRoughness(), 2);
     
     for (unsigned int i = 0; i < lights.size(); i++) {
@@ -233,22 +248,28 @@ vec3 Shader::findRefractedColor(const shared_ptr<Ray> &ray, const int bounces,
     const float sqroot = sqrt(1 - pow(n1_divide_n2, 2) * (1 - pow(d_dot_n, 2)));
     const vec3 refractedDirection = n1_divide_n2 * (d - d_dot_n * n) - n * sqroot;
     
-    shared_ptr<Ray> refractedRay = make_shared<Ray>(ray->getIntersectionPoint() + refractedDirection * EPSILON,
-                                                    refractedDirection);
+    shared_ptr<Ray> refractedRay = make_shared<Ray>(ray->getIntersectionPoint() + refractedDirection * EPSILON, refractedDirection);
     shared_ptr<SceneObject> hitObjFromRefract = refractedRay->findClosestObject(objects);
     
     // If the refraction hits an object.
     if (hitObjFromRefract != nullptr) {
         refractedColor = getShadedColor(refractedRay, bounces, trace);
-    }
-    
-    // Calculate attenuation. We only do this while the ray is going inside the obj
-    // (hence only doing it when enteringObj is true).
-    if (enteringObj) {
-        vec3 attenuation = vec3(1);
-        attenuation = getAttenuation(obj->getColor(), glm::distance(refractedRay->getIntersectionPoint(),
-                                                                    refractedRay->getOrigin()));
-        refractedColor *= attenuation;
+        
+        if (isPrintRays) {
+            string indent;
+            indent = to_string(bounces) + "  ";
+            trace = "\n" + indent + "  Iteration type: Refraction" + trace;
+        }
+        
+        // Calculate attenuation. We only do this while the ray is going inside the obj
+        // (hence only doing it when enteringObj is true).
+        if (enteringObj) {
+            vec3 attenuation = vec3(1);
+            attenuation = getAttenuation(obj->getColor(),
+                                         glm::distance(refractedRay->getIntersectionPoint(),
+                                                       refractedRay->getOrigin()));
+            refractedColor *= attenuation;
+        }
     }
     
     return refractedColor;
@@ -260,17 +281,21 @@ vec3 Shader::findReflectedColor(const shared_ptr<Ray> &ray, const int bounces,
     vec3 reflectedColor = vec3(0);
     
     shared_ptr<SceneObject> obj = ray->getIntersectedObject();
-    const vec3 n = obj->getNormalAtPoint(ray->getIntersectionPoint());
+    vec3 n = obj->getNormalAtPoint(ray->getIntersectionPoint());
     const vec3 d = ray->getDirection();
     const vec3 reflectedDirection = normalize(d - 2 * (dot(d, n)) * n);
     
-    shared_ptr<Ray> reflectedRay = make_shared<Ray>(ray->getIntersectionPoint() + reflectedDirection * EPSILON,
-                                                    reflectedDirection);
+    shared_ptr<Ray> reflectedRay = make_shared<Ray>(ray->getIntersectionPoint() + reflectedDirection * EPSILON, reflectedDirection);
     shared_ptr<SceneObject> hitObjFromReflect = reflectedRay->findClosestObject(objects);
     
     // If the reflection hits an object.
     if (hitObjFromReflect != nullptr) {
         reflectedColor = getShadedColor(reflectedRay, bounces, trace);
+        if (isPrintRays) {
+            string indent;
+            indent = to_string(bounces) + "  ";
+            trace = "\n" + indent + "  Iteration type: Reflection" + trace;
+        }
     }
     
     return reflectedColor;
@@ -279,7 +304,6 @@ vec3 Shader::findReflectedColor(const shared_ptr<Ray> &ray, const int bounces,
 float Shader::schlicksApproximation(const float ior, const vec3 &normal, const vec3 &view)
 {
     const float F0 = pow(ior - 1, 2)/pow(ior + 1, 2);
-    
     return F0 + (1 - F0) * pow(1 - dot(normal, view), 5);
 }
 

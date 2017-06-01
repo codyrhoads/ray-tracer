@@ -22,11 +22,11 @@ public:
     
     IntersectionResults findIntersection(const std::shared_ptr<Ray> &ray);
     
+    glm::vec3 getNormalAtPoint(const glm::vec3 &point) const;
+    
     void printObjectInfo() const;
     std::string getObjectType() const {return "Plane";}
 private:
-    glm::vec3 getNormalAtPoint(const glm::vec3 &point) const {return normal;}
-    
     glm::vec3 normal;
     float distance;
     

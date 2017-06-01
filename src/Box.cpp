@@ -77,7 +77,7 @@ IntersectionResults Box::findIntersection(const shared_ptr<Ray> &ray)
     float t1, t2;
     
     if (rayDirection.x == 0) {
-        if (rayOrigin.x <= objMins.x || rayOrigin.x >= objMaxes.x) {
+        if (rayOrigin.x >= objMins.x || rayOrigin.x <= objMaxes.x) {
             return ir;
         }
     }
@@ -99,7 +99,7 @@ IntersectionResults Box::findIntersection(const shared_ptr<Ray> &ray)
     }
     
     if (rayDirection.y == 0) {
-        if (rayOrigin.y <= objMins.y || rayOrigin.y >= objMaxes.y) {
+        if (rayOrigin.y >= objMins.y || rayOrigin.y <= objMaxes.y) {
             return ir;
         }
     }
@@ -121,7 +121,7 @@ IntersectionResults Box::findIntersection(const shared_ptr<Ray> &ray)
     }
     
     if (rayDirection.z == 0) {
-        if (rayOrigin.z <= objMins.z || rayOrigin.z >= objMaxes.z) {
+        if (rayOrigin.z >= objMins.z || rayOrigin.z <= objMaxes.z) {
             return ir;
         }
     }
@@ -150,7 +150,12 @@ IntersectionResults Box::findIntersection(const shared_ptr<Ray> &ray)
     }
     
     ir.foundIntersection = true;
-    ir.t = tgmin;
+    if (tgmin > 0) {
+        ir.t = tgmin;
+    }
+    else {
+        ir.t = tgmax;
+    }
     ir.intersectedObj = shared_from_this();
     return ir;
 }
@@ -167,31 +172,36 @@ vec3 Box::getNormalAtPoint(const vec3 &point) const
 {
     vec3 pointObjSpace = vec3(inverseModelMatrix * vec4(point, 1.0));
     mat4 transposedInverseModelMat = transpose(inverseModelMatrix);
-    float minXDiff = pointObjSpace.x - objMins.x;
-    float minYDiff = pointObjSpace.y - objMins.y;
-    float minZDiff = pointObjSpace.z - objMins.z;
-    float maxXDiff = pointObjSpace.x - objMaxes.x;
-    float maxYDiff = pointObjSpace.y - objMaxes.y;
+    float minXDiff = abs(pointObjSpace.x - objMins.x);
+    float minYDiff = abs(pointObjSpace.y - objMins.y);
+    float minZDiff = abs(pointObjSpace.z - objMins.z);
+    float maxXDiff = abs(pointObjSpace.x - objMaxes.x);
+    float maxYDiff = abs(pointObjSpace.y - objMaxes.y);
+    float maxZDiff = abs(pointObjSpace.z - objMaxes.z);
     
     // Any point on the box surface will have one component (xyz) that matches a
     // min/max. Knowing which min/max it matches provides the normal of that
     // point in object space.
-    if (minXDiff < epsilon && minXDiff > -epsilon) {
+    if (minXDiff < epsilon) {
         return normalize(vec3(transposedInverseModelMat * vec4(-1, 0, 0, 0)));
     }
-    else if (minYDiff < epsilon && minYDiff > -epsilon) {
+    else if (minYDiff < epsilon) {
         return normalize(vec3(transposedInverseModelMat * vec4(0, -1, 0, 0)));
     }
-    else if (minZDiff < epsilon && minZDiff > -epsilon) {
+    else if (minZDiff < epsilon) {
         return normalize(vec3(transposedInverseModelMat * vec4(0, 0, -1, 0)));
     }
-    else if (maxXDiff < epsilon && maxXDiff > -epsilon) {
+    else if (maxXDiff < epsilon) {
         return normalize(vec3(transposedInverseModelMat * vec4(1, 0, 0, 0)));
     }
-    else if (maxYDiff < epsilon && maxYDiff > -epsilon) {
+    else if (maxYDiff < epsilon) {
         return normalize(vec3(transposedInverseModelMat * vec4(0, 1, 0, 0)));
     }
-    else {
+    else if (maxZDiff < epsilon) {
         return normalize(vec3(transposedInverseModelMat * vec4(0, 0, 1, 0)));
+    }
+    else {
+        printf("ERROR: INVALID POINT\n");
+        return vec3(-1);
     }
 }

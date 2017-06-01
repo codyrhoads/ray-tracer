@@ -37,14 +37,17 @@ distance(distance)
 IntersectionResults Plane::findIntersection(const shared_ptr<Ray> &ray)
 {
     IntersectionResults ir = IntersectionResults();
+    // Transforming the ray from world space to object space
+    vec3 rayOrigin = vec3(inverseModelMatrix * vec4(ray->getOrigin(), 1.0));
+    vec3 rayDirection = vec3(inverseModelMatrix * vec4(ray->getDirection(), 0.0));
     float t;
-    const float denominator = dot(ray->getDirection(), normal);
+    const float denominator = dot(rayDirection, normal);
     
     if (denominator < epsilon && denominator > -epsilon) {
         return ir;
     }
     else {
-        t = (distance - dot(ray->getOrigin(), normal))/denominator;
+        t = (distance - dot(rayOrigin, normal))/denominator;
         
         if (t < 0) {
             return ir;
@@ -64,4 +67,10 @@ void Plane::printObjectInfo() const
     printf("- Normal: {%.4g %.4g %.4g}\n", normal.x, normal.y, normal.z);
     printf("- Distance: %.4g\n", distance);
     SceneObject::printObjectInfo();
+}
+
+vec3 Plane::getNormalAtPoint(const vec3 &point) const
+{
+    mat4 transposedInverseModelMat = transpose(inverseModelMatrix);
+    return normalize(vec3(transposedInverseModelMat * vec4(normal, 0.0)));
 }
