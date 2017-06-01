@@ -46,6 +46,7 @@ vec3 Shader::getShadedColor(const shared_ptr<Ray> &ray, const int bounces,
     vec3 localColor = vec3(0), reflectedColor = vec3(0), refractedColor = vec3(0);
     shared_ptr<SceneObject> obj = ray->getIntersectedObject();
     IlluminationValues iv = IlluminationValues();
+    bool totalInternalReflection = false;
     
     vec3 N = obj->getNormalAtPoint(ray->getIntersectionPoint());
     
@@ -65,11 +66,11 @@ vec3 Shader::getShadedColor(const shared_ptr<Ray> &ray, const int bounces,
     if (bounces < MAX_BOUNCES) {
         if (obj->getFilter() > 0) {
             refractedColor = findRefractedColor(ray, bounces + 1, trace);
+            if (refractedColor.x < 0) {
+                totalInternalReflection = true;
+            }
         }
         if (optArgs.fresnel) {
-            //printf("IOR: %.4g, N: {%.4g, %.4g, %.4g}, dir: {%.4g, %.4g, %.4g}\n",
-            //       obj->getIOR(), N.x, N.y, N.z, -ray->getDirection().x, -ray->getDirection().y,
-            //       -ray->getDirection().z);
             fresnelReflectance = schlicksApproximation(obj->getIOR(), N, -ray->getDirection());
         }
         if (obj->getReflection() > 0 || fresnelReflectance > 0) {
@@ -79,9 +80,17 @@ vec3 Shader::getShadedColor(const shared_ptr<Ray> &ray, const int bounces,
     }
     
     const float localContribution = (1 - obj->getFilter()) * (1 - obj->getReflection());
-    const float reflectionContribution = (1 - obj->getFilter()) * obj->getReflection() +
-                                         obj->getFilter() * fresnelReflectance;
-    const float refractionContribution = obj->getFilter() * (1 - fresnelReflectance);
+    float reflectionContribution, refractionContribution;
+    
+    if (totalInternalReflection) {
+        reflectionContribution = 1 - localContribution;
+        refractionContribution = 0;
+    }
+    else {
+        reflectionContribution = (1 - obj->getFilter()) * obj->getReflection() +
+                                  obj->getFilter() * fresnelReflectance;
+        refractionContribution = obj->getFilter() * (1 - fresnelReflectance);
+    }
     
     const vec3 finalColor = localContribution * localColor +
                             reflectionContribution * reflectedColor +
@@ -275,6 +284,9 @@ vec3 Shader::findRefractedColor(const shared_ptr<Ray> &ray, const int bounces,
                 refractedColor *= attenuation;
             }
         }
+    }
+    else {
+        refractedColor = vec3(-1);
     }
     
     return refractedColor;
