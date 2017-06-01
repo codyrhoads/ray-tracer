@@ -67,6 +67,9 @@ vec3 Shader::getShadedColor(const shared_ptr<Ray> &ray, const int bounces,
             refractedColor = findRefractedColor(ray, bounces + 1, trace);
         }
         if (optArgs.fresnel) {
+            //printf("IOR: %.4g, N: {%.4g, %.4g, %.4g}, dir: {%.4g, %.4g, %.4g}\n",
+            //       obj->getIOR(), N.x, N.y, N.z, -ray->getDirection().x, -ray->getDirection().y,
+            //       -ray->getDirection().z);
             fresnelReflectance = schlicksApproximation(obj->getIOR(), N, -ray->getDirection());
         }
         if (obj->getReflection() > 0 || fresnelReflectance > 0) {
@@ -245,30 +248,32 @@ vec3 Shader::findRefractedColor(const shared_ptr<Ray> &ray, const int bounces,
         d_dot_n = dot(d, n);
     }
     
-    const float sqroot = sqrt(1 - pow(n1_divide_n2, 2) * (1 - pow(d_dot_n, 2)));
-    const vec3 refractedDirection = n1_divide_n2 * (d - d_dot_n * n) - n * sqroot;
-    
-    shared_ptr<Ray> refractedRay = make_shared<Ray>(ray->getIntersectionPoint() + refractedDirection * EPSILON, refractedDirection);
-    shared_ptr<SceneObject> hitObjFromRefract = refractedRay->findClosestObject(objects);
-    
-    // If the refraction hits an object.
-    if (hitObjFromRefract != nullptr) {
-        refractedColor = getShadedColor(refractedRay, bounces, trace);
+    const float inSqroot = 1 - pow(n1_divide_n2, 2) * (1 - pow(d_dot_n, 2));
+    if (inSqroot >= 0) {
+        const vec3 refractedDirection = n1_divide_n2 * (d - d_dot_n * n) - n * sqrt(inSqroot);
         
-        if (isPrintRays) {
-            string indent;
-            indent = to_string(bounces) + "  ";
-            trace = "\n" + indent + "  Iteration type: Refraction" + trace;
-        }
+        shared_ptr<Ray> refractedRay = make_shared<Ray>(ray->getIntersectionPoint() + refractedDirection * EPSILON, refractedDirection);
+        shared_ptr<SceneObject> hitObjFromRefract = refractedRay->findClosestObject(objects);
         
-        // Calculate attenuation. We only do this while the ray is going inside the obj
-        // (hence only doing it when enteringObj is true).
-        if (enteringObj) {
-            vec3 attenuation = vec3(1);
-            attenuation = getAttenuation(obj->getColor(),
-                                         glm::distance(refractedRay->getIntersectionPoint(),
-                                                       refractedRay->getOrigin()));
-            refractedColor *= attenuation;
+        // If the refraction hits an object.
+        if (hitObjFromRefract != nullptr) {
+            refractedColor = getShadedColor(refractedRay, bounces, trace);
+            
+            if (isPrintRays) {
+                string indent;
+                indent = to_string(bounces) + "  ";
+                trace = "\n" + indent + "  Iteration type: Refraction" + trace;
+            }
+            
+            // Calculate attenuation. We only do this while the ray is going inside the obj
+            // (hence only doing it when enteringObj is true).
+            if (enteringObj) {
+                vec3 attenuation = vec3(1);
+                attenuation = getAttenuation(obj->getColor(),
+                                             glm::distance(refractedRay->getIntersectionPoint(),
+                                                           refractedRay->getOrigin()));
+                refractedColor *= attenuation;
+            }
         }
     }
     
