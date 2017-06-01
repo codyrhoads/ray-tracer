@@ -73,7 +73,7 @@ vec3 Shader::getShadedColor(const shared_ptr<Ray> &ray, const int bounces,
         if (optArgs.fresnel) {
             fresnelReflectance = schlicksApproximation(obj->getIOR(), N, -ray->getDirection());
         }
-        if (obj->getReflection() > 0 || fresnelReflectance > 0) {
+        if (obj->getReflection() > 0 || fresnelReflectance > 0 || totalInternalReflection) {
             reflectedColor = obj->getColor() * findReflectedColor(ray, bounces + 1,
                                                                   trace);
         }
@@ -155,11 +155,11 @@ vec3 Shader::findLocalColorBlinnPhong(const shared_ptr<Ray> &ray,
         const vec3 L = normalize(lights.at(i)->getLocation() - ray->getIntersectionPoint());
         
         shared_ptr<Ray> shadowTestRay = make_shared<Ray>(ray->getIntersectionPoint() + EPSILON * L, L);
-        shared_ptr<SceneObject> blockingObj = shadowTestRay->findClosestObject(objects);
+        shared_ptr<SceneObject> blockingObj = shadowTestRay->findClosestObject(objects, obj->getID());
         
         const float lightT = dot(normalize(shadowTestRay->getDirection()),
                                  lights.at(i)->getLocation() - shadowTestRay->getOrigin());
-        
+
         if (blockingObj == nullptr || shadowTestRay->getIntersectionTime() > lightT) {
             const vec3 V = normalize(-ray->getDirection());
             const vec3 H = normalize(V + L);
@@ -198,7 +198,7 @@ vec3 Shader::findLocalColorCookTorrance(const shared_ptr<Ray> &ray)
         const vec3 L = normalize(lights.at(i)->getLocation() - ray->getIntersectionPoint());
         
         shared_ptr<Ray> shadowTestRay = make_shared<Ray>(ray->getIntersectionPoint() + EPSILON * L, L);
-        shared_ptr<SceneObject> blockingObj = shadowTestRay->findClosestObject(objects);
+        shared_ptr<SceneObject> blockingObj = shadowTestRay->findClosestObject(objects, obj->getID());
         
         const float lightT = dot(normalize(shadowTestRay->getDirection()),
                                  lights.at(i)->getLocation() - shadowTestRay->getOrigin());
@@ -262,7 +262,7 @@ vec3 Shader::findRefractedColor(const shared_ptr<Ray> &ray, const int bounces,
         const vec3 refractedDirection = n1_divide_n2 * (d - d_dot_n * n) - n * sqrt(inSqroot);
         
         shared_ptr<Ray> refractedRay = make_shared<Ray>(ray->getIntersectionPoint() + refractedDirection * EPSILON, refractedDirection);
-        shared_ptr<SceneObject> hitObjFromRefract = refractedRay->findClosestObject(objects);
+        shared_ptr<SceneObject> hitObjFromRefract = refractedRay->findClosestObject(objects, -1);
         
         // If the refraction hits an object.
         if (hitObjFromRefract != nullptr) {
@@ -303,7 +303,7 @@ vec3 Shader::findReflectedColor(const shared_ptr<Ray> &ray, const int bounces,
     const vec3 reflectedDirection = normalize(d - 2 * (dot(d, n)) * n);
     
     shared_ptr<Ray> reflectedRay = make_shared<Ray>(ray->getIntersectionPoint() + reflectedDirection * EPSILON, reflectedDirection);
-    shared_ptr<SceneObject> hitObjFromReflect = reflectedRay->findClosestObject(objects);
+    shared_ptr<SceneObject> hitObjFromReflect = reflectedRay->findClosestObject(objects, -1);
     
     // If the reflection hits an object.
     if (hitObjFromReflect != nullptr) {

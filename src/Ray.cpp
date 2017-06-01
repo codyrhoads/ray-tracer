@@ -34,13 +34,14 @@ intersectedObj(nullptr)
     
 }
 
-shared_ptr<SceneObject> Ray::findClosestObject(const vector<shared_ptr<SceneObject>> &objects)
+shared_ptr<SceneObject> Ray::findClosestObject(const vector<shared_ptr<SceneObject>> &objects,
+                                               const int curObjID)
 {
     IntersectionResults tempIR = IntersectionResults();
     for (unsigned int i = 0; i < objects.size(); i++) {
         tempIR = objects.at(i)->findIntersection(shared_from_this());
         if (tempIR.foundIntersection) {
-            if (intersectedObj == nullptr || tempIR.t < t) {
+            if (tempIR.intersectedObj->getID() != curObjID && (intersectedObj == nullptr || tempIR.t < t)) {
                 t = tempIR.t;
                 intersectedObj = tempIR.intersectedObj;
             }

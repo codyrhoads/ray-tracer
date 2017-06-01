@@ -65,7 +65,7 @@ void Camera::render(const vector<shared_ptr<SceneObject>> &objects,
                 for (int n = 0; n < optArgs.superSampleN; n++) {
                     for (int m = 0; m < optArgs.superSampleN; m++) {
                         setCurrRaySuperSampling(i, j, m, n, optArgs.superSampleN);
-                        hitObj = currRay->findClosestObject(objects);
+                        hitObj = currRay->findClosestObject(objects, -1);
                         
                         if (hitObj != nullptr) {
                             vec3 color = shader.getShadedColor(currRay, 0, trace);
@@ -84,7 +84,7 @@ void Camera::render(const vector<shared_ptr<SceneObject>> &objects,
             }
             else {
                 setCurrRay(i, j);
-                hitObj = currRay->findClosestObject(objects);
+                hitObj = currRay->findClosestObject(objects, -1);
                 
                 vec3 color = vec3(0);
                 if (hitObj != nullptr) {
@@ -120,7 +120,7 @@ void Camera::firstHit(const vector<shared_ptr<SceneObject>> &objects,
 {
     pixelRay(pixelX, pixelY);
     
-    shared_ptr<SceneObject> hitObj = currRay->findClosestObject(objects);
+    shared_ptr<SceneObject> hitObj = currRay->findClosestObject(objects, -1);
     
     if (hitObj != nullptr) {
         printf("T = %.4g\n", currRay->getIntersectionTime());
@@ -143,7 +143,7 @@ void Camera::pixelColor(const vector<shared_ptr<SceneObject>> &objects,
     
     pixelRay(pixelX, pixelY);
     
-    shared_ptr<SceneObject> hitObj = currRay->findClosestObject(objects);
+    shared_ptr<SceneObject> hitObj = currRay->findClosestObject(objects, -1);
     
     if (hitObj != nullptr) {
         vec3 color;
@@ -172,7 +172,7 @@ void Camera::printRays(const vector<shared_ptr<SceneObject>> &objects,
     
     setCurrRay(pixelX, pixelY);
     
-    shared_ptr<SceneObject> hitObj = currRay->findClosestObject(objects);
+    shared_ptr<SceneObject> hitObj = currRay->findClosestObject(objects, -1);
     
     if (hitObj != nullptr) {
         vec3 color = shader.getShadedColor(currRay, 0, trace);
