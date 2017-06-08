@@ -73,6 +73,5 @@ void Plane::printObjectInfo() const
 
 vec3 Plane::getNormalAtPoint(const vec3 &point) const
 {
-    mat4 transposedInverseModelMat = transpose(inverseModelMatrix);
-    return normalize(vec3(transposedInverseModelMat * vec4(normal, 0.0)));
+    return normalize(vec3(transposedInverseModelMatrix * vec4(normal, 0.0)));
 }

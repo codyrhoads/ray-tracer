@@ -19,7 +19,7 @@ using namespace glm;
 Ray::Ray() :
 origin(vec3(0)),
 direction(vec3(0)),
-t(0),
+t(numeric_limits<float>::max()),
 intersectedObj(nullptr)
 {
     
@@ -28,7 +28,7 @@ intersectedObj(nullptr)
 Ray::Ray(const vec3 &origin, const vec3 &dir) :
 origin(origin),
 direction(dir),
-t(0),
+t(numeric_limits<float>::max()),
 intersectedObj(nullptr)
 {
     
@@ -41,7 +41,7 @@ shared_ptr<SceneObject> Ray::findClosestObject(const vector<shared_ptr<SceneObje
     for (unsigned int i = 0; i < objects.size(); i++) {
         tempIR = objects.at(i)->findIntersection(shared_from_this());
         if (tempIR.foundIntersection) {
-            if (tempIR.intersectedObj->getID() != curObjID && (intersectedObj == nullptr || tempIR.t < t)) {
+            if (tempIR.intersectedObj->getID() != curObjID && tempIR.t < t) {
                 t = tempIR.t;
                 intersectedObj = tempIR.intersectedObj;
             }

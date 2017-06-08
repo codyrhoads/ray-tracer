@@ -48,7 +48,7 @@ metallic(metallic),
 ior(ior),
 inverseModelMatrix(inverseModelMatrix)
 {
-    
+    transposedInverseModelMatrix = transpose(inverseModelMatrix);
 }
 
 IntersectionResults SceneObject::findIntersection(const shared_ptr<Ray> &ray)

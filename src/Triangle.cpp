@@ -169,6 +169,5 @@ void Triangle::printObjectInfo() const
 
 vec3 Triangle::getNormalAtPoint(const vec3 &point) const
 {
-    mat4 transposedInverseModelMat = transpose(inverseModelMatrix);
-    return normalize(vec3(transposedInverseModelMat * vec4(normalize(cross(v1 - v0, v2 - v0)), 0.0)));
+    return normalize(vec3(transposedInverseModelMatrix * vec4(normalize(cross(v1 - v0, v2 - v0)), 0.0)));
 }

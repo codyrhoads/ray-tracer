@@ -8,34 +8,13 @@
 #include "SceneObject.hpp"
 #include "Camera.hpp"
 #include "LightSource.hpp"
-#include "OptionalArgs.h"
+#include "OptionalArgs.hpp"
 
 using namespace std;
 
 enum Command {
     RENDER, SCENEINFO, PIXELRAY, FIRSTHIT, PIXELCOLOR, PRINTRAYS
 };
-
-void checkForOptionalArguments(char **argv, const int argc, const int start,
-                               OptionalArgs &optArgs)
-{
-    for (int i = start; i < argc; i++) {
-        string arg = argv[i];
-        string subArg = arg.substr(0, 4);
-        if (arg == "-fresnel") {
-            optArgs.fresnel = true;
-        }
-        else if (subArg == "-ss=") {
-            optArgs.superSampleN = atoi(arg.substr(4, arg.length() - 4).c_str());
-        }
-        else if (subArg == "-sds") {
-            optArgs.useBVH = true;
-        }
-        else if (arg == "-altbrdf") {
-            optArgs.BRDF = "Alternate";
-        }
-    }
-}
 
 int main(int argc, char **argv)
 {
@@ -47,9 +26,6 @@ int main(int argc, char **argv)
     vector<shared_ptr<SceneObject>> objects;
     Command command;
     OptionalArgs optArgs;
-    optArgs.fresnel = false;
-    optArgs.superSampleN = 0;
-    optArgs.BRDF = "Blinn-Phong";
     
     if (argc < 2) {
         printf("Need a command.\n");
@@ -62,7 +38,7 @@ int main(int argc, char **argv)
             printf("Not enough arguments for render.\n");
             return 0;
         }
-        checkForOptionalArguments(argv, argc, 5, optArgs);
+        optArgs = OptionalArgs(argv, argc, 5);
     }
     else if (!strcmp(argv[1], "sceneinfo")) {
         command = SCENEINFO;
@@ -91,7 +67,7 @@ int main(int argc, char **argv)
             printf("Not enough arguments for pixelcolor.\n");
             return 0;
         }
-        checkForOptionalArguments(argv, argc, 7, optArgs);
+        optArgs = OptionalArgs(argv, argc, 7);
     }
     else if (!strcmp(argv[1], "printrays")) {
         command = PRINTRAYS;
@@ -99,7 +75,7 @@ int main(int argc, char **argv)
             printf("Not enough arguments for printrays.\n");
             return 0;
         }
-        checkForOptionalArguments(argv, argc, 7, optArgs);
+        optArgs = OptionalArgs(argv, argc, 7);
     }
     else {
         printf("Unrecognized command.\n");

@@ -14,7 +14,7 @@
 #include <string>
 #include <glm/gtc/type_ptr.hpp>
 
-#include "OptionalArgs.h"
+#include "OptionalArgs.hpp"
 
 class SceneObject;
 class LightSource;
@@ -26,12 +26,17 @@ struct IlluminationValues
     glm::vec3 diffuse;
     glm::vec3 specular;
     
-    IlluminationValues()
+    glm::vec3 getColor()
     {
-        ambient = glm::vec3(0);
-        diffuse = glm::vec3(0);
-        specular = glm::vec3(0);
+        return ambient + diffuse + specular;
     }
+};
+
+struct Contributions
+{
+    float localContribution;
+    float reflectionContribution;
+    float refractionContribution;
 };
 
 class Shader
@@ -45,16 +50,22 @@ public:
     glm::vec3 getShadedColor(const std::shared_ptr<Ray> &ray, const int bounces,
                              std::string &trace);
 private:
-    glm::vec3 findLocalColorBlinnPhong(const std::shared_ptr<Ray> &ray,
-                                       IlluminationValues &iv);
-    glm::vec3 findLocalColorCookTorrance(const std::shared_ptr<Ray> &ray);
+    IlluminationValues findLocalColorBlinnPhong(const std::shared_ptr<Ray> &ray);
+    IlluminationValues findLocalColorCookTorrance(const std::shared_ptr<Ray> &ray);
     glm::vec3 findRefractedColor(const std::shared_ptr<Ray> &ray, const int bounces,
                                  std::string &trace);
     glm::vec3 findReflectedColor(const std::shared_ptr<Ray> &ray, const int bounces,
                                  std::string &trace);
-    static float schlicksApproximation(const float ior, const glm::vec3 &normal,
-                                       const glm::vec3 &view);
-    static glm::vec3 getAttenuation(const glm::vec3 &color, const float distance);
+    
+    Contributions findContributions(const std::shared_ptr<SceneObject> &obj,
+                                    const bool totalInternalReflection,
+                                    const float fresnelReflectance);
+    
+    void addToPrintRays(const std::shared_ptr<SceneObject> &obj, const std::shared_ptr<Ray> &ray,
+                        const Contributions contrib, const IlluminationValues &iv,
+                        const glm::vec3 &reflectedColor, const glm::vec3 &refractedColor,
+                        const int bounces, const glm::vec3 &N, const glm::vec3 &finalColor,
+                        std::string &trace);
     
     const std::vector<std::shared_ptr<SceneObject>> objects;
     const std::vector<std::shared_ptr<LightSource>> lights;

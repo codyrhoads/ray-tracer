@@ -53,7 +53,7 @@ protected:
     int ID;
     glm::vec3 color;
     float ambient, diffuse, specular, reflection, filter, roughness, metallic, ior;
-    glm::mat4 inverseModelMatrix;
+    glm::mat4 inverseModelMatrix, transposedInverseModelMatrix;
     
     glm::vec3 BBmins, BBmaxes;
     

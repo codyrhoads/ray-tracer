@@ -171,7 +171,6 @@ void Box::printObjectInfo() const
 vec3 Box::getNormalAtPoint(const vec3 &point) const
 {
     vec3 pointObjSpace = vec3(inverseModelMatrix * vec4(point, 1.0));
-    mat4 transposedInverseModelMat = transpose(inverseModelMatrix);
     float minXDiff = abs(pointObjSpace.x - objMins.x);
     float minYDiff = abs(pointObjSpace.y - objMins.y);
     float minZDiff = abs(pointObjSpace.z - objMins.z);
@@ -183,22 +182,22 @@ vec3 Box::getNormalAtPoint(const vec3 &point) const
     // min/max. Knowing which min/max it matches provides the normal of that
     // point in object space.
     if (minXDiff < epsilon) {
-        return normalize(vec3(transposedInverseModelMat * vec4(-1, 0, 0, 0)));
+        return normalize(vec3(transposedInverseModelMatrix * vec4(-1, 0, 0, 0)));
     }
     else if (minYDiff < epsilon) {
-        return normalize(vec3(transposedInverseModelMat * vec4(0, -1, 0, 0)));
+        return normalize(vec3(transposedInverseModelMatrix * vec4(0, -1, 0, 0)));
     }
     else if (minZDiff < epsilon) {
-        return normalize(vec3(transposedInverseModelMat * vec4(0, 0, -1, 0)));
+        return normalize(vec3(transposedInverseModelMatrix * vec4(0, 0, -1, 0)));
     }
     else if (maxXDiff < epsilon) {
-        return normalize(vec3(transposedInverseModelMat * vec4(1, 0, 0, 0)));
+        return normalize(vec3(transposedInverseModelMatrix * vec4(1, 0, 0, 0)));
     }
     else if (maxYDiff < epsilon) {
-        return normalize(vec3(transposedInverseModelMat * vec4(0, 1, 0, 0)));
+        return normalize(vec3(transposedInverseModelMatrix * vec4(0, 1, 0, 0)));
     }
     else if (maxZDiff < epsilon) {
-        return normalize(vec3(transposedInverseModelMat * vec4(0, 0, 1, 0)));
+        return normalize(vec3(transposedInverseModelMatrix * vec4(0, 0, 1, 0)));
     }
     else {
         printf("ERROR: INVALID POINT\n");

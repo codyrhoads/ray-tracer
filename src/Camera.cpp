@@ -15,7 +15,7 @@
 #include "Shader.hpp"
 #define STB_IMAGE_WRITE_IMPLEMENTATION
 #include "stb_image_write.h"
-#include "OptionalArgs.h"
+#include "OptionalArgs.hpp"
 
 using namespace std;
 using namespace glm;
