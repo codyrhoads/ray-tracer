@@ -20,7 +20,7 @@ OptionalArgs::OptionalArgs()
     giBounces = 2;
     giRatio = 4;
     BRDF = "Blinn-Phong";
-};
+}
 
 OptionalArgs::OptionalArgs(char **argv, const int argc, const int start) :
 OptionalArgs()

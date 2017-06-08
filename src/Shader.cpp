@@ -64,7 +64,6 @@ vec3 Shader::getShadedColor(const shared_ptr<Ray> &ray, const int bounces,
     }
     
     float fresnelReflectance = 0;
-    // Not sure if MAX_BOUNCES has to match optArgs.giBounces if doing gi.
     if (bounces < MAX_BOUNCES) {
         if (obj->getFilter() > 0) {
             refractedColor = findRefractedColor(ray, bounces + 1, trace);
@@ -81,6 +80,7 @@ vec3 Shader::getShadedColor(const shared_ptr<Ray> &ray, const int bounces,
         }
     }
     
+    // If Monte Carlo global illumination is enabled, calculate the new ambient.
     if (optArgs.globalIllum && bounces < optArgs.giBounces) {
         iv.ambient = vec3(0);
         int numSamples;
@@ -91,7 +91,7 @@ vec3 Shader::getShadedColor(const shared_ptr<Ray> &ray, const int bounces,
             numSamples = optArgs.giSamples/(bounces * optArgs.giRatio);
         }
         
-        int sqrtSamples = sqrt(numSamples);
+        const int sqrtSamples = sqrt(numSamples);
         for (int i = 0; i < sqrtSamples; i++) {
             for (int j = 0; j < sqrtSamples; j++) {
                 const float u = ((float)i / sqrtSamples) + (0.5 + Math::randFloat(0, 1)/2)/sqrtSamples;

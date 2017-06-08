@@ -9,6 +9,7 @@
 #include <stdio.h>
 #include <sstream>
 #include <iomanip>
+#include <glm/gtc/matrix_transform.hpp>
 
 #include "SceneObject.hpp"
 #include "LightSource.hpp"

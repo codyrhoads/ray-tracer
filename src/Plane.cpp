@@ -6,8 +6,6 @@
 //
 //
 
-#include <glm/gtc/matrix_transform.hpp>
-
 #include "Plane.hpp"
 #include "Ray.hpp"
 #include "LightSource.hpp"
