@@ -9,9 +9,9 @@ To implement this, I refactored my shadow calculation code to allow for objects 
 
 With Ambient Occlusion | Without Ambient Occlusion
 ---------------------- | -------------------------
-![ao_1.pov with AO](./webpage/screenshots/ao1WithAO.png) | ![ao_1.pov without AO](./webpage/screenshots/ao1WithoutAO.png)
-![ao_2.pov with AO](./webpage/screenshots/ao2WithAO.png) | ![ao_2.pov without AO](./webpage/screenshots/ao2WithoutAO.png)
-![ao_3.pov with AO](./webpage/screenshots/ao3WithAO.png) | ![ao_3.pov without AO](./webpage/screenshots/ao3WithoutAO.png)
+![ao_1.pov with AO](./screenshots/ao1WithAO.png) | ![ao_1.pov without AO](./screenshots/ao1WithoutAO.png)
+![ao_2.pov with AO](./screenshots/ao2WithAO.png) | ![ao_2.pov without AO](./screenshots/ao2WithoutAO.png)
+![ao_3.pov with AO](./screenshots/ao3WithAO.png) | ![ao_3.pov without AO](./screenshots/ao3WithoutAO.png)
 
 ### Resources
 I only used the provided notes on ambient occlusion, as well as previous knowledge about the method of implementing Monte Carlo global illumination.
