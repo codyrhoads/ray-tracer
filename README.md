@@ -14,7 +14,7 @@ With Ambient Occlusion | Without Ambient Occlusion
 ![ao_3.pov with AO](./screenshots/ao3WithAO.png) | ![ao_3.pov without AO](./screenshots/ao3WithoutAO.png)
 
 ### Resources
-I only used the provided notes on ambient occlusion, as well as previous knowledge about the method of implementing Monte Carlo global illumination.
+I used the provided notes on ambient occlusion, as well as previous knowledge about the implementation of Monte Carlo global illumination.
 
 ### Software Design Implementation
 Initially, my FileParser.cpp file was incredibly long and redundant. Parsing a variable had a few key steps, and these steps had to be rewritten for every parsed variable for every parsed object. This led to lengthy, repetitive methods that were difficult to read.
