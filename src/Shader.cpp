@@ -16,6 +16,8 @@
 #include "Math.hpp"
 
 #define MAX_BOUNCES 6
+#define AO_SAMPLES 64
+#define AO_DISTANCE 0.3f
 #define EPSILON 0.005f
 
 using namespace std;
@@ -50,7 +52,6 @@ vec3 Shader::getShadedColor(const shared_ptr<Ray> &ray, const int bounces,
     bool totalInternalReflection = false;
     
     vec3 N = obj->getNormalAtPoint(ray->getIntersectionPoint());
-    
     // If ray is exiting a shape, then flip the normal.
     if (dot(ray->getDirection(), N) > 0) {
         N = -N;
@@ -82,33 +83,7 @@ vec3 Shader::getShadedColor(const shared_ptr<Ray> &ray, const int bounces,
     
     // If Monte Carlo global illumination is enabled, calculate the new ambient.
     if (optArgs.globalIllum && bounces < optArgs.giBounces) {
-        iv.ambient = vec3(0);
-        int numSamples;
-        if (bounces == 0) {
-            numSamples = optArgs.giSamples;
-        }
-        else {
-            numSamples = optArgs.giSamples/(bounces * optArgs.giRatio);
-        }
-        
-        const int sqrtSamples = sqrt(numSamples);
-        for (int i = 0; i < sqrtSamples; i++) {
-            for (int j = 0; j < sqrtSamples; j++) {
-                const float u = ((float)i / sqrtSamples) + (0.5 + Math::randFloat(0, 1)/2)/sqrtSamples;
-                const float v = ((float)j / sqrtSamples) + (0.5 + Math::randFloat(0, 1)/2)/sqrtSamples;
-                
-                vec3 samplePoint = Math::generateCosineWeightedPoint(u, v);
-                vec3 alignedPoint = Math::alignSampleVector(samplePoint, vec3(0, 0, 1), N);
-                
-                // Calculate the ambient color by making a ray from the intersection
-                // point to the direction of the sampled point.
-                shared_ptr<Ray> monteCarloRay = make_shared<Ray>(ray->getIntersectionPoint() + alignedPoint * EPSILON, alignedPoint);
-                shared_ptr<SceneObject> monteObj = monteCarloRay->findClosestObject(objects, obj->getID());
-                if (monteObj != nullptr) {
-                    iv.ambient += getShadedColor(monteCarloRay, bounces + 1, trace)/(float)numSamples;
-                }
-            }
-        }
+        iv.ambient = findAmbientMonteCarlo(ray, bounces, N, trace);
     }
     
     Contributions contrib = findContributions(obj, totalInternalReflection, fresnelReflectance);
@@ -144,25 +119,17 @@ IlluminationValues Shader::findLocalColorBlinnPhong(const shared_ptr<Ray> &ray)
 
     for (unsigned int i = 0; i < lights.size(); i++) {
         const vec3 L = normalize(lights.at(i)->getLocation() - ray->getIntersectionPoint());
+        const vec3 V = normalize(-ray->getDirection());
+        const vec3 H = normalize(V + L);
+        const float shadowFactor = findShadowFactor(ray, lights.at(i), N);
         
-        shared_ptr<Ray> shadowTestRay = make_shared<Ray>(ray->getIntersectionPoint() + EPSILON * L, L);
-        shared_ptr<SceneObject> blockingObj = shadowTestRay->findClosestObject(objects, obj->getID());
+        const vec3 rd = kd * std::max(0.0f, dot(N, L));
+        const vec3 rs = ks * pow(std::max(0.0f, dot(H, N)), power);
         
-        const float lightT = dot(normalize(shadowTestRay->getDirection()),
-                                 lights.at(i)->getLocation() - shadowTestRay->getOrigin());
-
-        if (blockingObj == nullptr || shadowTestRay->getIntersectionTime() > lightT) {
-            const vec3 V = normalize(-ray->getDirection());
-            const vec3 H = normalize(V + L);
-            
-            const vec3 rd = kd * std::max(0.0f, dot(N, L));
-            const vec3 rs = ks * pow(std::max(0.0f, dot(H, N)), power);
-            
-            totalDiffuse += lights.at(i)->getColor() * rd;
-            totalSpecular += lights.at(i)->getColor() * rs;
-        }
+        totalDiffuse += lights.at(i)->getColor() * rd * shadowFactor;
+        totalSpecular += lights.at(i)->getColor() * rs * shadowFactor;
     }
-    
+
     iv.ambient = ka;
     iv.diffuse = totalDiffuse;
     iv.specular = totalSpecular;
@@ -187,35 +154,27 @@ IlluminationValues Shader::findLocalColorCookTorrance(const shared_ptr<Ray> &ray
     
     for (unsigned int i = 0; i < lights.size(); i++) {
         const vec3 L = normalize(lights.at(i)->getLocation() - ray->getIntersectionPoint());
+        const vec3 V = normalize(-ray->getDirection());
+        const vec3 H = normalize(V + L);
+        const float NdotH = dot(N, H);
+        const float NdotV = dot(N, V);
+        const float VdotH = dot(V, H);
+        const float NdotL = dot(N, L);
+        const vec3 rd = kd;
+        const float shadowFactor = findShadowFactor(ray, lights.at(i), N);
         
-        shared_ptr<Ray> shadowTestRay = make_shared<Ray>(ray->getIntersectionPoint() + EPSILON * L, L);
-        shared_ptr<SceneObject> blockingObj = shadowTestRay->findClosestObject(objects, obj->getID());
+        const float exponent = (pow(NdotH, 2) - 1) / (pow(alpha, 2) * pow(NdotH, 2));
+        const float D = (1/(M_PI * pow(alpha, 2))) * (exp(exponent)/pow(NdotH, 4));
         
-        const float lightT = dot(normalize(shadowTestRay->getDirection()),
-                                 lights.at(i)->getLocation() - shadowTestRay->getOrigin());
+        float G = std::min(1.0f, (2 * NdotH * NdotV)/VdotH);
+        G = std::min(G, (2 * NdotH * NdotL)/VdotH);
         
-        if (blockingObj == nullptr || shadowTestRay->getIntersectionTime() > lightT) {
-            const vec3 V = normalize(-ray->getDirection());
-            const vec3 H = normalize(V + L);
-            const float NdotH = dot(N, H);
-            const float NdotV = dot(N, V);
-            const float VdotH = dot(V, H);
-            const float NdotL = dot(N, L);
-            const vec3 rd = kd;
-            
-            const float exponent = (pow(NdotH, 2) - 1) / (pow(alpha, 2) * pow(NdotH, 2));
-            const float D = (1/(M_PI * pow(alpha, 2))) * (exp(exponent)/pow(NdotH, 4));
-            
-            float G = std::min(1.0f, (2 * NdotH * NdotV)/VdotH);
-            G = std::min(G, (2 * NdotH * NdotL)/VdotH);
-            
-            const float F = Math::schlicksApproximation(obj->getIOR(), H, V);
-            
-            const float rs = (D * G * F)/(4 * NdotL * NdotV);
-            
-            totalDiffuse += lights.at(i)->getColor() * NdotL * ((1 - obj->getMetallic()) * rd);
-            totalSpecular += lights.at(i)->getColor() * NdotL * (obj->getMetallic() * rs);
-        }
+        const float F = Math::schlicksApproximation(obj->getIOR(), H, V);
+        
+        const float rs = (D * G * F)/(4 * NdotL * NdotV);
+        
+        totalDiffuse += lights.at(i)->getColor() * NdotL * ((1 - obj->getMetallic()) * rd) * shadowFactor;
+        totalSpecular += lights.at(i)->getColor() * NdotL * (obj->getMetallic() * rs) * shadowFactor;
     }
     
     iv.ambient = ka;
@@ -311,6 +270,79 @@ vec3 Shader::findReflectedColor(const shared_ptr<Ray> &ray, const int bounces,
     }
     
     return reflectedColor;
+}
+
+vec3 Shader::findAmbientMonteCarlo(const shared_ptr<Ray> &ray, const int bounces,
+                                   const vec3 &N, string &trace)
+{
+    vec3 ambient = vec3(0);
+    int numSamples;
+    if (bounces == 0) {
+        numSamples = optArgs.giSamples;
+    }
+    else {
+        numSamples = optArgs.giSamples/(bounces * optArgs.giRatio);
+    }
+    
+    const int sqrtSamples = sqrt(numSamples);
+    for (int i = 0; i < sqrtSamples; i++) {
+        for (int j = 0; j < sqrtSamples; j++) {
+            const float u = ((float)i / sqrtSamples) + (0.5 + Math::randFloat(-1, 1)/2)/sqrtSamples;
+            const float v = ((float)j / sqrtSamples) + (0.5 + Math::randFloat(-1, 1)/2)/sqrtSamples;
+            
+            vec3 samplePoint = Math::generateCosineWeightedPoint(u, v);
+            vec3 alignedPoint = Math::alignSampleVector(samplePoint, vec3(0, 0, 1), N);
+            
+            // Calculate the ambient color by making a ray from the intersection
+            // point to the direction of the sampled point.
+            shared_ptr<Ray> monteCarloRay = make_shared<Ray>(ray->getIntersectionPoint() + alignedPoint * EPSILON, alignedPoint);
+            shared_ptr<SceneObject> monteObj = monteCarloRay->findClosestObject(objects, ray->getIntersectedObjectID());
+            if (monteObj != nullptr) {
+                ambient += getShadedColor(monteCarloRay, bounces + 1, trace)/(float)numSamples;
+            }
+        }
+    }
+    
+    return ambient;
+}
+
+float Shader::findShadowFactor(const shared_ptr<Ray> &ray, const shared_ptr<LightSource> &light,
+                               const vec3 &N)
+{
+    float shadowFactor = 0.0f;
+    const vec3 L = normalize(light->getLocation() - ray->getIntersectionPoint());
+    
+    shared_ptr<Ray> shadowTestRay = make_shared<Ray>(ray->getIntersectionPoint() + EPSILON * L, L);
+    shared_ptr<SceneObject> blockingObj = shadowTestRay->findClosestObject(objects, ray->getIntersectedObjectID());
+    const float lightT = dot(normalize(shadowTestRay->getDirection()),
+                             light->getLocation() - shadowTestRay->getOrigin());
+    const bool isBlocked = (blockingObj != nullptr && shadowTestRay->getIntersectionTime() < lightT);
+    
+    if (optArgs.ambientOcc && !isBlocked) {
+        const int sqrtSamples = sqrt(AO_SAMPLES);
+        for (int i = 0; i < sqrtSamples; i++) {
+            for (int j = 0; j < sqrtSamples; j++) {
+                const float u = ((float)i / sqrtSamples) + (0.5 + Math::randFloat(-1, 1)/2)/sqrtSamples;
+                const float v = ((float)j / sqrtSamples) + (0.5 + Math::randFloat(-1, 1)/2)/sqrtSamples;
+                
+                vec3 samplePoint = Math::generateCosineWeightedPoint(u, v);
+                vec3 alignedPoint = Math::alignSampleVector(samplePoint, vec3(0, 0, 1), N);
+                
+                // Calculate the ambient color by making a ray from the intersection
+                // point to the direction of the sampled point.
+                shared_ptr<Ray> aoRay = make_shared<Ray>(ray->getIntersectionPoint() + alignedPoint * EPSILON, alignedPoint);
+                shared_ptr<SceneObject> intersectedObj = aoRay->findClosestObject(objects, ray->getIntersectedObjectID());
+                if (intersectedObj == nullptr || aoRay->getIntersectionTime() > AO_DISTANCE) {
+                    shadowFactor += 1.0f/(AO_SAMPLES);
+                }
+            }
+        }
+    }
+    else if (!isBlocked) {
+        shadowFactor = 1.0f;
+    }
+    
+    return shadowFactor;
 }
 
 Contributions Shader::findContributions(const shared_ptr<SceneObject> &obj,

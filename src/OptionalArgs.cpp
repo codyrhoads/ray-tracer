@@ -19,6 +19,7 @@ OptionalArgs::OptionalArgs()
     giSamples = 128;
     giBounces = 2;
     giRatio = 4;
+    ambientOcc = false;
     BRDF = "Blinn-Phong";
 }
 
@@ -53,6 +54,9 @@ OptionalArgs()
             else if (ratioCheck == "ratio=") {
                 giRatio = atoi(arg.substr(10, arg.length() - 10).c_str());
             }
+        }
+        else if (arg == "-ao") {
+            ambientOcc = true;
         }
         else if (arg == "-altbrdf") {
             BRDF = "Alternate";

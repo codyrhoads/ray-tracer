@@ -23,6 +23,7 @@ struct OptionalArgs
     int giSamples;
     int giBounces;
     int giRatio;
+    bool ambientOcc;
     std::string BRDF;
 };
 

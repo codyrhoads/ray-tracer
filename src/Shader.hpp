@@ -56,6 +56,10 @@ private:
                                  std::string &trace);
     glm::vec3 findReflectedColor(const std::shared_ptr<Ray> &ray, const int bounces,
                                  std::string &trace);
+    glm::vec3 findAmbientMonteCarlo(const std::shared_ptr<Ray> &ray, const int bounces,
+                                    const glm::vec3 &N, std::string &trace);
+    float findShadowFactor(const std::shared_ptr<Ray> &ray, const std::shared_ptr<LightSource> &light,
+                           const glm::vec3 &N);
     
     Contributions findContributions(const std::shared_ptr<SceneObject> &obj,
                                     const bool totalInternalReflection,
