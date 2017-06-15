@@ -47,6 +47,8 @@ private:
     size_t findIndexOfFirstTransform(const std::string &segment);
     
     void removeNewlinesAndWhitespace(std::string &segment);
+    void removeComments(std::string &segment);
+    std::string getNextSegment(std::ifstream &file);
     
     std::shared_ptr<Camera> camera;
     std::vector<std::shared_ptr<LightSource>> lights;

@@ -40,13 +40,7 @@ void FileParser::parse(const string &filename, const bool useBVH)
     // The '{' character marks the beginning of a new section (camera, light,
     // object).
     while (getline(file, segment, '{')) {
-        // Remove all comments from the segment
-        size_t found = segment.find("//");
-        while (found != string::npos) {
-            segment.erase(segment.begin() + found,
-                          segment.begin() + segment.find('\n', found + 1));
-            found = segment.find("//");
-        }
+        removeComments(segment);
         
         /* PARSING CAMERA */
         if (segment.find("camera") != string::npos) {
@@ -85,16 +79,12 @@ void FileParser::parse(const string &filename, const bool useBVH)
 
 void FileParser::parseCamera(ifstream &file)
 {
-    string segment;
     vec3 location = vec3(0);
     vec3 up = vec3(0);
     vec3 right = vec3(0);
     vec3 lookAt = vec3(0);
     
-    // A '}' marks the end of a section. The camera doesn't have any subsections
-    // that use curly brackets, so we can assume that the '}' is the end of the
-    // camera object. Segment now contains all of the information for the camera.
-    getline(file, segment, '}');
+    string segment = getNextSegment(file);
     
     removeNewlinesAndWhitespace(segment);
     
@@ -109,13 +99,8 @@ void FileParser::parseCamera(ifstream &file)
 void FileParser::parseLight(ifstream &file)
 {
     vec3 location = vec3(0), color = vec3(0);
-    string segment, temp;
     
-    // A '}' marks the end of a section. The light source doesn't have any
-    // subsections that use curly brackets, so we can assume that the '}' is the
-    // end of the light source object. Segment now contains all of the
-    // information for the current light source.
-    getline(file, segment, '}');
+    string segment = getNextSegment(file);
     
     removeNewlinesAndWhitespace(segment);
     
@@ -136,19 +121,9 @@ void FileParser::parsePlane(ifstream &file, const int ID)
     float roughness = 0.3, metallic = 0.1, ior = 1.6;
     mat4 inverseModelMatrix = mat4(1.0f);
     size_t newStart = 0;
-    string segment = "", temp;
     bool hasFilter = false;
     
-    // Since there are subsections denoted with curly braces, we have to search
-    // for the '}' without a corresponding '{'. This means that it is the end
-    // of the plane information.
-    getline(file, temp, '}');
-    while (count(temp.begin(), temp.end(), '{') > 0) {
-        temp.append("}");
-        segment.append(temp);
-        getline(file, temp, '}');
-    }
-    segment.append(temp);
+    string segment = getNextSegment(file);
     
     removeNewlinesAndWhitespace(segment);
     
@@ -190,19 +165,9 @@ void FileParser::parseSphere(ifstream &file, const int ID, const bool useBVH)
     float roughness = 0.3, metallic = 0.1, ior = 1.6;
     mat4 inverseModelMatrix = mat4(1.0f);
     size_t newStart = 0;
-    string segment = "", temp;
     bool hasFilter = false;
     
-    // Since there are subsections denoted with curly braces, we have to search
-    // for the '}' without a corresponding '{'. This means that it is the end
-    // of the sphere information.
-    getline(file, temp, '}');
-    while (count(temp.begin(), temp.end(), '{') > 0) {
-        temp.append("}");
-        segment.append(temp);
-        getline(file, temp, '}');
-    }
-    segment.append(temp);
+    string segment = getNextSegment(file);
     
     removeNewlinesAndWhitespace(segment);
     
@@ -250,19 +215,9 @@ void FileParser::parseBox(ifstream &file, const int ID, const bool useBVH)
     float roughness = 0.3, metallic = 0.1, ior = 1.6;
     mat4 inverseModelMatrix = mat4(1.0f);
     size_t newStart = 0;
-    string segment = "", temp;
     bool hasFilter = false;
     
-    // Since there are subsections denoted with curly braces, we have to search
-    // for the '}' without a corresponding '{'. This means that it is the end
-    // of the sphere information.
-    getline(file, temp, '}');
-    while (count(temp.begin(), temp.end(), '{') > 0) {
-        temp.append("}");
-        segment.append(temp);
-        getline(file, temp, '}');
-    }
-    segment.append(temp);
+    string segment = getNextSegment(file);
     
     removeNewlinesAndWhitespace(segment);
     
@@ -311,19 +266,9 @@ void FileParser::parseTriangle(ifstream &file, const int ID, const bool useBVH)
     float roughness = 0.3, metallic = 0.1, ior = 1.6;
     mat4 inverseModelMatrix = mat4(1.0f);
     size_t newStart = 0;
-    string segment = "", temp;
     bool hasFilter = false;
     
-    // Since there are subsections denoted with curly braces, we have to search
-    // for the '}' without a corresponding '{'. This means that it is the end
-    // of the triangle information.
-    getline(file, temp, '}');
-    while (count(temp.begin(), temp.end(), '{') > 0) {
-        temp.append("}");
-        segment.append(temp);
-        getline(file, temp, '}');
-    }
-    segment.append(temp);
+    string segment = getNextSegment(file);
     
     removeNewlinesAndWhitespace(segment);
     
@@ -517,4 +462,33 @@ void FileParser::removeNewlinesAndWhitespace(string &segment)
     segment.erase(remove(segment.begin(), segment.end(), '\n'), segment.end());
     // Remove all whitespace from the string.
     segment.erase(remove(segment.begin(), segment.end(), ' '), segment.end());
+}
+
+void FileParser::removeComments(string &segment)
+{
+    // Remove all comments from the segment
+    size_t found = segment.find("//");
+    while (found != string::npos) {
+        segment.erase(segment.begin() + found,
+                      segment.begin() + segment.find('\n', found + 1));
+        found = segment.find("//");
+    }
+}
+
+string FileParser::getNextSegment(ifstream &file)
+{
+    string segment = "", temp;
+    
+    // Since there are subsections denoted with curly braces, we have to search
+    // for the '}' without a corresponding '{'. This means that it is the end
+    // of the triangle information.
+    getline(file, temp, '}');
+    while (count(temp.begin(), temp.end(), '{') > 0) {
+        temp.append("}");
+        segment.append(temp);
+        getline(file, temp, '}');
+    }
+    segment.append(temp);
+    
+    return segment;
 }
