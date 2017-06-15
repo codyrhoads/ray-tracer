@@ -34,6 +34,7 @@ void FileParser::parse(const string &filename, const bool useBVH)
     string segment;
     ifstream file;
     int ID = 1;
+    BVH = useBVH;
     
     file.open(filename);
     
@@ -56,15 +57,15 @@ void FileParser::parse(const string &filename, const bool useBVH)
         }
         /* PARSING SPHERE OBJECT */
         if (segment.find("sphere") != string::npos) {
-            parseSphere(file, ID++, useBVH);
+            parseSphere(file, ID++);
         }
         /* PARSING BOX OBJECT */
         if (segment.find("box") != string::npos) {
-            parseBox(file, ID++, useBVH);
+            parseBox(file, ID++);
         }
         /* PARSING TRIANGLE OBJECT */
         else if (segment.find("triangle") != string::npos) {
-            parseTriangle(file, ID++, useBVH);
+            parseTriangle(file, ID++);
         }
     }
     
@@ -156,7 +157,7 @@ void FileParser::parsePlane(ifstream &file, const int ID)
     objects.push_back(plane);
 }
 
-void FileParser::parseSphere(ifstream &file, const int ID, const bool useBVH)
+void FileParser::parseSphere(ifstream &file, const int ID)
 {
     vec3 center = vec3(0);
     vec3 color = vec3(0);
@@ -197,7 +198,7 @@ void FileParser::parseSphere(ifstream &file, const int ID, const bool useBVH)
                                      reflection, 0, roughness, metallic, ior, inverseModelMatrix);
     }
     
-    if (useBVH) {
+    if (BVH) {
         nonPlanes.push_back(sphere);
     }
     else {
@@ -205,7 +206,7 @@ void FileParser::parseSphere(ifstream &file, const int ID, const bool useBVH)
     }
 }
 
-void FileParser::parseBox(ifstream &file, const int ID, const bool useBVH)
+void FileParser::parseBox(ifstream &file, const int ID)
 {
     vec3 mins = vec3(0);
     vec3 maxes = vec3(0);
@@ -247,7 +248,7 @@ void FileParser::parseBox(ifstream &file, const int ID, const bool useBVH)
                                reflection, 0, roughness, metallic, ior, inverseModelMatrix);
     }
     
-    if (useBVH) {
+    if (BVH) {
         nonPlanes.push_back(box);
     }
     else {
@@ -255,7 +256,7 @@ void FileParser::parseBox(ifstream &file, const int ID, const bool useBVH)
     }
 }
 
-void FileParser::parseTriangle(ifstream &file, const int ID, const bool useBVH)
+void FileParser::parseTriangle(ifstream &file, const int ID)
 {
     vec3 v0 = vec3(0);
     vec3 v1 = vec3(0);
@@ -300,7 +301,7 @@ void FileParser::parseTriangle(ifstream &file, const int ID, const bool useBVH)
                                          metallic, ior, inverseModelMatrix);
     }
     
-    if (useBVH) {
+    if (BVH) {
         nonPlanes.push_back(triangle);
     }
     else {

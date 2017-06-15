@@ -33,9 +33,9 @@ private:
     void parseCamera(std::ifstream &file);
     void parseLight(std::ifstream &file);
     void parsePlane(std::ifstream &file, const int ID);
-    void parseSphere(std::ifstream &file, const int ID, const bool useBVH);
-    void parseBox(std::ifstream &file, const int ID, const bool useBVH);
-    void parseTriangle(std::ifstream &file, const int ID, const bool useBVH);
+    void parseSphere(std::ifstream &file, const int ID);
+    void parseBox(std::ifstream &file, const int ID);
+    void parseTriangle(std::ifstream &file, const int ID);
     
     void findAndSetSingleValueParameter(const std::string &segment, float &parameter,
                                         const std::string &indicator, const size_t start);
@@ -50,6 +50,7 @@ private:
     void removeComments(std::string &segment);
     std::string getNextSegment(std::ifstream &file);
     
+    bool BVH;
     std::shared_ptr<Camera> camera;
     std::vector<std::shared_ptr<LightSource>> lights;
     std::vector<std::shared_ptr<SceneObject>> objects, nonPlanes;
