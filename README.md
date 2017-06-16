@@ -17,9 +17,15 @@ With Ambient Occlusion | Without Ambient Occlusion
 I used the provided notes on ambient occlusion, as well as previous knowledge about the implementation of Monte Carlo global illumination.
 
 ### Software Design Implementation
-Initially, my FileParser.cpp file was incredibly long and redundant. Parsing a variable had a few key steps, and these steps had to be rewritten for every parsed variable for every parsed object. This led to lengthy, repetitive methods that were difficult to read.
+Initially, my FileParser.cpp file was incredibly long and redundant. Parsing a variable typically only needed a few steps, but these steps had to be rewritten many times for every different variable. This code was then repeated for every different type of parsed object, leading to lengthy, repetitive methods that were difficult to read.
 
-To fix this issue, I realized that variables inside pov files could only be one of three types: a single float, a vec3, or a vec4. Knowing this, I was able to simplify my code by creating three generic methods that each specialized in parsing one of these types. This greatly reduced the length of FileParser.cpp, and increased legibility as well. Separating functionality into several methods also made it easier to debug issues with my parser program.
+To fix this issue, I realized that variables inside pov files could only be one of three types: a single float, a vec3, or a vec4. Knowing this, I was able to simplify my code by creating three generic methods that each specialized in parsing one of these types. These methods are:
+
+* findAndSetSingleValueParameter()
+* findAndSetVec3Parameter()
+* findAndSetVec4Parameter()
+
+Other methods were also added to abstract the removal of whitespace, comments, and newlines, as well as handle the process of selecting the next segment to parse. All of these methods greatly reduced the length of FileParser.cpp and increased legibility. Separating functionality into several methods also made it easier to debug issues with my parser program.
 
 To demonstrate how significant this refactoring was, I've included my code for parsing a sphere prior to refactoring and from my current version.
 
